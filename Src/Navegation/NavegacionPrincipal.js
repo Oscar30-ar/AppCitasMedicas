@@ -3,7 +3,7 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import Pacientes_Stack from "./Stack/PacientesStack";
-import perfilScreen from "../../Screen/Perfil/perfilScreen";
+import perfilScreen from "../../Screen/Pacientes/perfilScreen";
 import confi_paciente from "../../Screen/Configuracion/configuracion_Paciente";
 const Tab = createBottomTabNavigator();
 
