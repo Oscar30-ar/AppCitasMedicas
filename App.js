@@ -8,8 +8,9 @@ import { ThemeProvider } from './components/ThemeContext';
 export default function App() {
   return (
     <ThemeProvider>
-      <AppNavegacion/>
-      <StatusBar style="auto" />
+     
+      <StatusBar style="light" backgroundColor="#0f172a" />
+       <AppNavegacion/>
     </ThemeProvider>
   );
 };

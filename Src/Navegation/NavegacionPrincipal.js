@@ -4,7 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import Pacientes_Stack from "./Stack/PacientesStack";
 import perfilScreen from "../../Screen/Pacientes/perfilScreen";
-import confi_paciente from "../../Screen/Configuracion/configuracion_Paciente";
+import confi_paciente from "../../Screen/Pacientes/configuracion_Paciente";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { useContext } from "react";
 import { ThemeContext } from "../../components/ThemeContext";
@@ -18,15 +18,15 @@ export default function NavegacionPrincipal(){
         <Tab.Navigator
         screenOptions={{
             tabBarStyle:{
-                backgroundColor: "#110d46ff",
+                backgroundColor: "#090632ff",
                 borderTopWidth: 1,
-                borderTopColor: "#f4f4f4ff",
+                borderTopColor: "#ffffffff",
                 height: 60,
                
                
             },
             tabBarActiveTintColor: "white",
-            tabBarInactiveTintColor: "#b3a5a5ff",
+            tabBarInactiveTintColor: "#eaeaeaff",
             tabBarLabelStyle:{
                 fontSize: 12,
                 fontWeight: "600",
