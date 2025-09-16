@@ -1,17 +1,21 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image } from "react-native"; // Importa Image
 import { FontAwesome5 } from "@expo/vector-icons";
 
-const UserForm = ({ userType, documento, setDocumento, password, setPassword, navigation }) => {
+// (Tu componente UserForm no necesita cambios para esto)
+const UserForm = ({ userType, password, setPassword, navigation, lic_medica, setLic_medica, email, setEmail, codEmpleado,setCodEmpleado }) => {
   return (
     <View style={styles.formContainer}>
       <Text style={styles.formTitle}>Acceso para {userType}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Documento de identidad"
+        placeholder="Correo Electrónico" // Campo de email
         placeholderTextColor="#a1a1aa"
-        value={documento}
-        onChangeText={setDocumento}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoComplete="email"
+        value={email}
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
@@ -21,13 +25,33 @@ const UserForm = ({ userType, documento, setDocumento, password, setPassword, na
         value={password}
         onChangeText={setPassword}
       />
+
+      {userType === "Doctor" && (
+        <TextInput
+          style={styles.input}
+          placeholder="Número de licencia médica"
+          placeholderTextColor="#a1a1aa"
+          value={lic_medica}
+          onChangeText={setLic_medica}
+        />
+      )}
+
+      {userType === "Recepcionista" && (
+        <TextInput
+          style={styles.input}
+          placeholder="Código de empleado"
+          placeholderTextColor="#a1a1aa"
+          value={codEmpleado}
+          onChangeText={setCodEmpleado}
+        />
+      )}
+
       <TouchableOpacity>
         <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.loginBtn}>
-        <Text style={styles.loginText}>Ingresar</Text>
+      <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate("DashboardPaciente")}>
+        <Text style={styles.loginText}>Iniciar Sesión</Text>
       </TouchableOpacity>
-      {}
       {userType === "Paciente" && (
         <TouchableOpacity style={styles.registerBtn} onPress={() => navigation.navigate("Registro", { userType })}>
           <Text style={styles.registerText}>Registrarse</Text>
@@ -39,17 +63,19 @@ const UserForm = ({ userType, documento, setDocumento, password, setPassword, na
 
 export default function LoginScreen({ navigation }) {
   const [userType, setUserType] = useState("Paciente");
-  const [documento, setDocumento] = useState("");
   const [password, setPassword] = useState("");
+  const [lic_medica, setLic_medica] = useState("");
+  const [email, setEmail] = useState(""); 
+  const [codEmpleado, setCodEmpleado] = useState(""); 
 
   const renderForm = () => {
     switch (userType) {
       case "Paciente":
-        return <UserForm userType="Paciente" {...{ documento, setDocumento, password, setPassword, navigation }} />;
+        return <UserForm userType="Paciente" {...{ email, setEmail, password, setPassword, navigation }} />;
       case "Doctor":
-        return <UserForm userType="Doctor" {...{ documento, setDocumento, password, setPassword, navigation }} />;
+        return <UserForm userType="Doctor" {...{ email, setEmail, password, setPassword, lic_medica, setLic_medica, navigation }} />;
       case "Recepcionista":
-        return <UserForm userType="Recepcionista" {...{ documento, setDocumento, password, setPassword, navigation }} />;
+        return <UserForm userType="Recepcionista" {...{ email, setEmail, password, setPassword,codEmpleado,setCodEmpleado, navigation }} />;
       default:
         return null;
     }
@@ -57,13 +83,23 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {}
+      {/* NUEVA IMAGEN DE PORTADA */}
+      <Image
+        source={{ uri: "https://example.com/coverImage.png" }}
+        // Asegúrate de que esta ruta sea correcta o usa una URL: { uri: 'https://example.com/your-image.jpg' }
+        style={styles.coverImage}
+        resizeMode="cover" // Ajusta la imagen para cubrir el área sin distorsionar
+      />
+
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Bienvenido A Clinica Los Andes</Text>
-        <Text style={styles.headerSubtitle}>Selecciona tu tipo de usuario para continuar.</Text>
+        {/* Aquí podrías colocar tu icono del corazón si quieres que esté más arriba */}
+        <View style={styles.logoContainer}>
+          <FontAwesome5 name="heartbeat" size={40} color="#38bdf8" />
+        </View>
+        <Text style={styles.headerTitle}>Clínica los Andes</Text>
+        <Text style={styles.headerSubtitle}>Inicia sesión en tu cuenta</Text>
       </View>
 
-      {}
       <View style={styles.roleSelector}>
         <TouchableOpacity
           style={[styles.roleTab, userType === "Paciente" && styles.roleTabActive]}
@@ -90,7 +126,6 @@ export default function LoginScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {}
       {renderForm()}
     </ScrollView>
   );
@@ -100,22 +135,51 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: "#0f172a",
-    paddingHorizontal: 20,
-    paddingVertical: 40,
+    // paddingHorizontal: 20, // Quitado para que la imagen ocupe todo el ancho
+    paddingVertical: 0, // Quitado para que la imagen ocupe todo el alto al inicio
+  },
+  // NUEVO ESTILO PARA LA IMAGEN DE PORTADA
+  coverImage: {
+    width: '100%',   // Ocupa todo el ancho
+    height: 200,     // Altura fija, ajusta según necesites
+    borderBottomLeftRadius: 30, // Bordes redondeados inferiores
+    borderBottomRightRadius: 30,
+    marginBottom: 20, // Espacio entre la imagen y el encabezado
   },
   header: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 20, // Ajustado para dar más espacio si la imagen tiene marginBottom
+    paddingHorizontal: 20, // Agregado para restaurar el padding horizontal al contenido
+  },
+  logoContainer: { // Para el icono del corazón
+    backgroundColor: '#fff', // Fondo blanco como en la imagen de referencia
+    borderRadius: 35, // Para que sea circular
+    width: 70,
+    height: 70,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15,
+    // Sombra sutil para darle profundidad
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#fff",
+    marginBottom: 5,
   },
   headerSubtitle: {
     fontSize: 16,
     color: "#e4e4e7",
     marginTop: 5,
+    marginBottom: 20, // Ajustado para dar espacio al selector de rol
   },
   roleSelector: {
     flexDirection: "row",
@@ -124,6 +188,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 6,
     marginBottom: 30,
+    marginHorizontal: 20, // Agregado para que el selector de rol no ocupe todo el ancho
   },
   roleTab: {
     flex: 1,
@@ -150,6 +215,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1e293b",
     borderRadius: 12,
     padding: 24,
+    marginHorizontal: 20, // Agregado para que el formulario no ocupe todo el ancho
   },
   formTitle: {
     color: "#fff",

@@ -1,66 +1,70 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Feather, IonIcons } from "@expo/vector-icons"
-const Tab = createBottomTabNavigator();
-import InicioStack from "./Stack/InicioStack";
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import Feather from '@expo/vector-icons/Feather';
+import Pacientes_Stack from "./Stack/PacientesStack";
 import perfilScreen from "../../Screen/Perfil/perfilScreen";
+import confi_paciente from "../../Screen/Configuracion/configuracion_Paciente";
+const Tab = createBottomTabNavigator();
 
-export default function NavegacionPrincipal() {
-    return (
+export default function NavegacionPrincipal(){
+    return(
         <Tab.Navigator
-            screenOptions={{
-                // Estilo para la barra de pestañas en general
-                tabBarStyle:{
-                    backgroundColor:'#eef6d7',
-                    borderTopWidth:1,
-                    borderTopColor:'#3d481d',
-                    height:60,
-                    paddingBottom:5,
-                    paddingTop:5,
-                },
-                //colores de los iconos y texto de la pestaña
-                tabBarActiveTintColor: "green",
-                tabBarInactiveTintColor:'#808080',
-                tabBarLabelStyle:{
-                    fontSize:12,
-                    fontWeight:'600',
-                    marginTop:2,
-                },
-            }}
+        screenOptions={{
+            tabBarStyle:{
+                backgroundColor: "#110d46ff",
+                borderTopWidth: 1,
+                borderTopColor: "#f4f4f4ff",
+                height: 60,
+               
+               
+            },
+            tabBarActiveTintColor: "white",
+            tabBarInactiveTintColor: "#b3a5a5ff",
+            tabBarLabelStyle:{
+                fontSize: 12,
+                fontWeight: "600",
+                alignItems: "center"
+               
+            },             
+        }}
         >
-            <Tab.Screen
-                name="Inicio"
-                component={Inicio}
-                options={{
-                    headerShown: false,
-                    tabBarIcon: ({ color, size }) => (
-                        <IonIcons name="home" size={size} color={color} />
-                    ),
-                    tabBarLabel: 'Inicio',
-                }} />
+           
+            <Tab.Screen 
+            name="Inicio"
+            component={Pacientes_Stack}
+            options={{
+                headerShown: false,
+                tabBarIcon:({color, size}) =>(
+                   <FontAwesome6 name="house-chimney" size={size}
+                    color={color} />
+                )
+            }}
+            
+            />
 
-            <Tab.Screen
-                name="Perfil"
-                component={perfilStack}
-                options={{
-                    headerShown: false,
-                    tabBarIcon: ({ color, size }) => (
-                        <Feather name="user" size={size} color={color} />
-                    ),
-                    tabBarLabel: 'Perfil',
-                }} />
+                <Tab.Screen 
+            name="Perfil"
+            component={perfilScreen}
+            options={{
+                headerShown: false,
+                tabBarIcon:({color, size}) =>(
+                    <Ionicons name="people-circle" size={size} color={color}/>
+                )
+            }}
+            />
 
+          <Tab.Screen 
+            name="Configuracion"
+            component={confi_paciente}
+            options={{
+                headerShown: false,
+                tabBarIcon:({color, size}) =>(
+                  <Feather name="settings" size={size} color={color} />
+                )
+            }}
+            />
 
-            <Tab.Screen
-                name="Configuracion"
-                component={configuracionesStack}
-                options={{
-                    headerShown: false,
-                    tabBarIcon: ({ color, size }) => (
-                        <IonIcons name="settings-outline" size={size} color={color} />
-                    ),
-                    tabBarLabel: 'Configuracion',
-                }} />
         </Tab.Navigator>
     )
 }
-

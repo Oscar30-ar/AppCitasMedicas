@@ -1,9 +1,12 @@
-import { View, Text } from "react-native";
+// Screen/Start/inicio.js
+import React from 'react';
+import DashboardComponent from '../Pacientes/DashboardPaciente';
 
-export default function Inicio(){
-    return(
-        <View>
-            <Text>Inicio</Text>
-        </View>
-    )
+export default function Inicio({ route }) {
+
+    const userType = 'Paciente';
+
+    return (
+        <DashboardComponent userType={userType} />
+    );
 }

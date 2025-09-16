@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Login  from "../../Screen/Auth/login";
 import Registro  from "../../Screen/Auth/registro";
+import DashboardComponent from "../../Screen/Pacientes/DashboardPaciente";
 
 const Stack = createNativeStackNavigator();
 
@@ -12,11 +13,19 @@ export default function AuthNavegacion(){
                 component={Login}
                 options={{title:"Iniciar Sesión"}}
             />
+
+            <Stack.Screen
+                name="DashboardPacientes"
+                component={DashboardComponent}
+                options={{title:"DashboardComponent"}}
+            />
+
             <Stack.Screen
                 name="Registro"
                 component={Registro}
-                options={{title:"Iniciar Sesión"}}
+                options={{title:"Registrarse"}}
             />
+            
         </Stack.Navigator>
     )
 }

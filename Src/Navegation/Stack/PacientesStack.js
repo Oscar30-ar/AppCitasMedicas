@@ -1,13 +1,20 @@
-import { createStackNavigator } from "@react-navigation/stack";
 import DetallesPaciente from "../../../Screen/Pacientes/detallesPacientes";
 import EditarPaciente from "../../../Screen/Pacientes/editarPaciente";
 import ListarPaciente from "../../../Screen/Pacientes/listarPacientes";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import DashboardScreen from "../../../Screen/Pacientes/DashboardPaciente";
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
-export default function PacientesStack(){
+export default function Pacientes_Stack(){
     return(
         <Stack.Navigator>
+            <Stack.Screen
+                name="DashboardPacientes"
+                component={DashboardScreen}
+                options={{title: "Pacientes"}}
+            />
+
             <Stack.Screen
                 name="DetallesPaciente"
                 component={DetallesPaciente}
