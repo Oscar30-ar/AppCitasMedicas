@@ -4,7 +4,7 @@ import AuthNavegacion from "./AuthNavegacion";
 export default function AppNavegacion(){
     return(
         <NavigationContainer>
-           <NavegacionPrincipal/>
+           <AuthNavegacion/>
         </NavigationContainer>
     );
 }

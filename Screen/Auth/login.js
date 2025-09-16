@@ -1,15 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image } from "react-native"; // Importa Image
 import { FontAwesome5 } from "@expo/vector-icons";
+import { ThemeContext } from "../../components/ThemeContext";
+import ThemeSwitcher from "../../components/ThemeSwitcher";
 
 // (Tu componente UserForm no necesita cambios para esto)
-const UserForm = ({ userType, password, setPassword, navigation, lic_medica, setLic_medica, email, setEmail, codEmpleado,setCodEmpleado }) => {
+const UserForm = ({ userType, password, setPassword, navigation, lic_medica, setLic_medica, email, setEmail, codEmpleado, setCodEmpleado }) => {
+  const { theme } = useContext(ThemeContext);
+
   return (
     <View style={styles.formContainer}>
+
       <Text style={styles.formTitle}>Acceso para {userType}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Correo Electrónico" // Campo de email
+        placeholder="Correo Electrónico"
         placeholderTextColor="#a1a1aa"
         keyboardType="email-address"
         autoCapitalize="none"
@@ -65,8 +70,8 @@ export default function LoginScreen({ navigation }) {
   const [userType, setUserType] = useState("Paciente");
   const [password, setPassword] = useState("");
   const [lic_medica, setLic_medica] = useState("");
-  const [email, setEmail] = useState(""); 
-  const [codEmpleado, setCodEmpleado] = useState(""); 
+  const [email, setEmail] = useState("");
+  const [codEmpleado, setCodEmpleado] = useState("");
 
   const renderForm = () => {
     switch (userType) {
@@ -75,7 +80,7 @@ export default function LoginScreen({ navigation }) {
       case "Doctor":
         return <UserForm userType="Doctor" {...{ email, setEmail, password, setPassword, lic_medica, setLic_medica, navigation }} />;
       case "Recepcionista":
-        return <UserForm userType="Recepcionista" {...{ email, setEmail, password, setPassword,codEmpleado,setCodEmpleado, navigation }} />;
+        return <UserForm userType="Recepcionista" {...{ email, setEmail, password, setPassword, codEmpleado, setCodEmpleado, navigation }} />;
       default:
         return null;
     }
@@ -126,7 +131,13 @@ export default function LoginScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      
+
       {renderForm()}
+
+      {/* Boton de modo oscuro */}
+      
+        <ThemeSwitcher/>
     </ScrollView>
   );
 }
@@ -264,4 +275,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
   },
+  themeSwitcherContainer: {
+    marginTop: 40, // espacio desde el form hacia abajo
+    marginBottom: 20, // margen inferior
+    alignItems: "center", // centrado
+  },
+
 });

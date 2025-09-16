@@ -1,56 +1,83 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
-import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import React, { useContext } from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import BottonComponent from "../../components/BottonComponent";
+import { ThemeContext } from "../../components/ThemeContext";
+import ThemeSwitcher from "../../components/ThemeSwitcher";
 
 export default function perfilScreen({ navigation }) {
-    // Aquí podrías obtener los datos del usuario de un estado o una API
+    const { theme } = useContext(ThemeContext);
+
     const userData = {
         nombre: "Juan",
         apellido: "Pérez",
         documento: "123456789",
         email: "juan.perez@example.com",
-        telefono: "+57 300 123 4567"
+        telefono: "+57 300 123 4567",
     };
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
             {/* Header de la pantalla */}
             <View style={styles.header}>
-                <Ionicons name="person-circle-outline" size={80} color="#f4f4f5" />
-                <Text style={styles.profileName}>{userData.nombre} {userData.apellido}</Text>
-                <Text style={styles.profileEmail}>{userData.email}</Text>
+                <Ionicons name="person-circle-outline" size={80} color={theme.text} />
+                <Text style={[styles.profileName, { color: theme.text }]}>
+                    {userData.nombre} {userData.apellido}
+                </Text>
+                <Text style={[styles.profileEmail, { color: theme.subtitle }]}>
+                    {userData.email}
+                </Text>
             </View>
 
             {/* Sección de Datos Personales */}
-            <View style={styles.infoCard}>
-                <Text style={styles.sectionTitle}>Datos Personales</Text>
-                
+            <View style={[styles.infoCard, { backgroundColor: theme.cardBackground }]}>
+                <Text
+                    style={[
+                        styles.sectionTitle,
+                        { color: theme.text, borderBottomColor: theme.border },
+                    ]}
+                >
+                    Datos Personales
+                </Text>
+
                 <View style={styles.infoRow}>
-                    <Ionicons name="document-text-outline" size={20} color="#a1a1aa" />
-                    <Text style={styles.infoLabel}>Documento:</Text>
-                    <Text style={styles.infoValue}>{userData.documento}</Text>
+                    <Ionicons name="document-text-outline" size={20} color={theme.subtitle} />
+                    <Text style={[styles.infoLabel, { color: theme.subtitle }]}>Documento:</Text>
+                    <Text style={[styles.infoValue, { color: theme.text }]}>
+                        {userData.documento}
+                    </Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                    <Ionicons name="mail-outline" size={20} color="#a1a1aa" />
-                    <Text style={styles.infoLabel}>Correo Electrónico:</Text>
-                    <Text style={styles.infoValue}>{userData.email}</Text>
+                    <Ionicons name="mail-outline" size={20} color={theme.subtitle} />
+                    <Text style={[styles.infoLabel, { color: theme.subtitle }]}>
+                        Correo Electrónico:
+                    </Text>
+                    <Text style={[styles.infoValue, { color: theme.text }]}>
+                        {userData.email}
+                    </Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                    <Ionicons name="call-outline" size={20} color="#a1a1aa" />
-                    <Text style={styles.infoLabel}>Teléfono:</Text>
-                    <Text style={styles.infoValue}>{userData.telefono}</Text>
+                    <Ionicons name="call-outline" size={20} color={theme.subtitle} />
+                    <Text style={[styles.infoLabel, { color: theme.subtitle }]}>Teléfono:</Text>
+                    <Text style={[styles.infoValue, { color: theme.text }]}>
+                        {userData.telefono}
+                    </Text>
                 </View>
             </View>
 
             {/* Botón para editar perfil */}
-            <BottonComponent 
-                title="Editar Perfil" 
-                onPress={() => navigation.navigate("EditarPaciente")} 
-                style={styles.editButton}
+            <BottonComponent
+                title="Editar Perfil"
+                onPress={() => navigation.navigate("EditarPaciente")}
+                style={[styles.editButton, { backgroundColor: theme.primary }]}
             />
+
+            {/* Botón de cambiar tema más abajo */}
+            <View style={styles.themeSwitcherContainer}>
+                <ThemeSwitcher />
+            </View>
         </ScrollView>
     );
 }
@@ -58,26 +85,22 @@ export default function perfilScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#0f172a", // Fondo oscuro
-        padding: 20,
+        padding: 15,
     },
     header: {
         alignItems: "center",
-        marginBottom: 30,
-        marginTop: 20,
+        marginBottom: 40,
+        marginTop: 60,
     },
     profileName: {
         fontSize: 24,
         fontWeight: "bold",
-        color: "#f4f4f5",
         marginTop: 10,
     },
     profileEmail: {
         fontSize: 14,
-        color: "#a1a1aa",
     },
     infoCard: {
-        backgroundColor: "#1e293b",
         padding: 20,
         borderRadius: 10,
         marginBottom: 20,
@@ -85,9 +108,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: "bold",
-        color: "#f4f4f5",
         marginBottom: 15,
-        borderBottomColor: "#334155",
         borderBottomWidth: 1,
         paddingBottom: 10,
     },
@@ -97,16 +118,18 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     infoLabel: {
-        color: "#94a3b8",
         fontWeight: "bold",
         marginLeft: 10,
-        width: 120, // Ancho fijo para alinear
+        width: 160,
     },
     infoValue: {
-        color: "#f4f4f5",
         flex: 1,
     },
     editButton: {
-        backgroundColor: "#3b82f6", // Botón azul
+        marginBottom: 40, // separa el botón de "Editar perfil" del switcher
+    },
+    themeSwitcherContainer: {
+        top:-410,// baja bastante el switcher
+        alignItems: "center", // opcional, para centrarlo
     },
 });

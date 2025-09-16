@@ -5,10 +5,16 @@ import Feather from '@expo/vector-icons/Feather';
 import Pacientes_Stack from "./Stack/PacientesStack";
 import perfilScreen from "../../Screen/Pacientes/perfilScreen";
 import confi_paciente from "../../Screen/Configuracion/configuracion_Paciente";
+import ThemeSwitcher from "../../components/ThemeSwitcher";
+import { useContext } from "react";
+import { ThemeContext } from "../../components/ThemeContext";
+
 const Tab = createBottomTabNavigator();
 
 export default function NavegacionPrincipal(){
+    const { theme } = useContext(ThemeContext);
     return(
+        
         <Tab.Navigator
         screenOptions={{
             tabBarStyle:{

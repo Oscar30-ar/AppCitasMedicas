@@ -1,6 +1,3 @@
-import DetallesPaciente from "../../../Screen/Pacientes/detallesPacientes";
-import EditarPaciente from "../../../Screen/Pacientes/editarPaciente";
-import ListarPaciente from "../../../Screen/Pacientes/listarPacientes";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import DashboardScreen from "../../../Screen/Pacientes/DashboardPaciente";
 import CrearCitasScreen from "../../../Screen/Pacientes/NuevaCita";
@@ -16,13 +13,6 @@ export default function Pacientes_Stack(){
                 component={DashboardScreen}
                 options={{title: "Pacientes"}}
             />
-
-            <Stack.Screen
-                name="DetallesPaciente"
-                component={DetallesPaciente}
-                options={{title: "Pacientes"}}
-            />
-
             <Stack.Screen
                 name="NuevaCita"
                 component={CrearCitasScreen}
@@ -34,12 +24,7 @@ export default function Pacientes_Stack(){
                 component={HistorialMedicoScreen}
                 options={{title: "Pacientes"}}
             />
-
-            <Stack.Screen
-                name="ListarPaciente"
-                component={ListarPaciente}
-                options={{title: "Pacientes"}}
-            />
+            
         </Stack.Navigator>
     )
 }
