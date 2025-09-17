@@ -15,7 +15,7 @@ export default function AuthNavegacion(){
             />
 
             <Stack.Screen
-                name="DashboardPacientes"
+                name="DashboardPaciente"
                 component={DashboardComponent}
                 options={{title:"DashboardComponent"}}
             />

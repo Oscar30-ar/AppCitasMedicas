@@ -3,28 +3,51 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-nati
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
-export default function DashboardScreen({ navigation }) {
+export default function DashboardScreen() {
     const { theme } = useContext(ThemeContext);
+    const navigation = useNavigation();
+
+    const handleLogout = async () => {
+        try {
+            await AsyncStorage.removeItem("userToken");
+            console.log("Sesión cerrada correctamente.");
+
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "Auth" }],
+            });
+        } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+        }
+    };
+
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
-            {/* Header y Título */}
+            {/* Header */}
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
                     <Text style={[styles.title, { color: theme.text }]}>Clínica los Andes</Text>
                     <Text style={[styles.subtitle, { color: theme.subtitle }]}>Panel del Paciente</Text>
                 </View>
-              {/* Boton de modo oscuro */}
                 <View style={styles.headerIcons}>
-                    <ThemeSwitcher /> 
+                    <ThemeSwitcher />
+                    {/* Botón de logout */}
+                    <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+                        <Ionicons name="log-out-outline" size={24} color={theme.text} />
+                    </TouchableOpacity>
                 </View>
             </View>
 
-            {/* Saludo y botón de cita */}
+            {/* Bienvenida */}
             <View style={[styles.welcomeCard, { backgroundColor: theme.cardBackground }]}>
                 <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenido, Juan Pérez</Text>
-                <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>¿Necesitas programar una nueva cita? Estamos aquí para ayudarte.</Text>
+                <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
+                    ¿Necesitas programar una nueva cita? Estamos aquí para ayudarte.
+                </Text>
                 <TouchableOpacity
                     style={[styles.newAppointmentBtn, { backgroundColor: theme.primary }]}
                     onPress={() => navigation.navigate("NuevaCita")}
@@ -76,7 +99,7 @@ export default function DashboardScreen({ navigation }) {
                 </View>
             </View>
 
-            {/* Acciones rápidas (tarjetas inferiores) */}
+            {/* Acciones rápidas */}
             <View style={styles.actionsGrid}>
                 <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.cardBackground }]} onPress={() => navigation.navigate("HistorialMedico")}>
                     <FontAwesome5 name="file-medical" size={28} color={theme.text} />
@@ -94,131 +117,35 @@ export default function DashboardScreen({ navigation }) {
                     <Text style={[styles.actionCardSubtitle, { color: theme.subtitle }]}>Actualizar información</Text>
                 </TouchableOpacity>
             </View>
-
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 15,
-    },
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 20,
-    },
-    titleContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    title: {
-        fontSize: 22,
-        fontWeight: "bold",
-        marginRight: 10,
-    },
-    subtitle: {
-        fontSize: 16,
-        fontWeight: "400",
-    },
-    headerIcons: {
-        flexDirection: "row",
-    },
-    welcomeCard: {
-        padding: 20,
-        borderRadius: 12,
-        marginBottom: 20,
-    },
-    welcomeText: {
-        fontSize: 18,
-        fontWeight: "bold",
-        marginBottom: 5,
-    },
-    welcomeSubText: {
-        fontSize: 14,
-        marginBottom: 15,
-    },
-    newAppointmentBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 12,
-        borderRadius: 8,
-    },
-    newAppointmentText: {
-        color: "white",
-        fontWeight: "bold",
-        marginLeft: 8,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: "bold",
-        marginVertical: 15,
-    },
-    appointmentsContainer: {
-        marginBottom: 20,
-    },
-    appointmentCard: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: 15,
-        borderRadius: 12,
-        marginBottom: 10,
-    },
-    appointmentInfo: {
-        flex: 1,
-    },
-    doctorName: {
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    specialty: {
-        fontSize: 14,
-        marginBottom: 5,
-    },
-    appointmentDetails: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    infoText: {
-        fontSize: 12,
-        marginLeft: 5,
-    },
-    viewDetailsBtn: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-    },
-    viewDetailsText: {
-        color: "white",
-        fontSize: 12,
-        fontWeight: "bold",
-    },
-    actionsGrid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        justifyContent: "space-between",
-        marginHorizontal: -5,
-        marginTop: 10,
-    },
-    actionCard: {
-        width: "30%",
-        borderRadius: 12,
-        padding: 15,
-        alignItems: "center",
-        justifyContent: "center",
-        marginBottom: 10,
-    },
-    actionCardTitle: {
-        fontSize: 12,
-        fontWeight: "bold",
-        marginTop: 5,
-    },
-    actionCardSubtitle: {
-        fontSize: 10,
-        textAlign: "center",
-    },
+    container: { flex: 1, padding: 15 },
+    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+    titleContainer: { flexDirection: "row", alignItems: "center" },
+    title: { fontSize: 22, fontWeight: "bold", marginRight: 10 },
+    subtitle: { fontSize: 16, fontWeight: "400" },
+    headerIcons: { flexDirection: "row", alignItems: "center" },
+    logoutBtn: { marginLeft: 15 },
+    welcomeCard: { padding: 20, borderRadius: 12, marginBottom: 20 },
+    welcomeText: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
+    welcomeSubText: { fontSize: 14, marginBottom: 15 },
+    newAppointmentBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", padding: 12, borderRadius: 8 },
+    newAppointmentText: { color: "white", fontWeight: "bold", marginLeft: 8 },
+    sectionTitle: { fontSize: 16, fontWeight: "bold", marginVertical: 15 },
+    appointmentsContainer: { marginBottom: 20 },
+    appointmentCard: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 15, borderRadius: 12, marginBottom: 10 },
+    appointmentInfo: { flex: 1 },
+    doctorName: { fontSize: 16, fontWeight: "bold" },
+    specialty: { fontSize: 14, marginBottom: 5 },
+    appointmentDetails: { flexDirection: "row", alignItems: "center" },
+    infoText: { fontSize: 12, marginLeft: 5 },
+    viewDetailsBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6 },
+    viewDetailsText: { color: "white", fontSize: 12, fontWeight: "bold" },
+    actionsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginHorizontal: -5, marginTop: 10 },
+    actionCard: { width: "30%", borderRadius: 12, padding: 15, alignItems: "center", justifyContent: "center", marginBottom: 10 },
+    actionCardTitle: { fontSize: 12, fontWeight: "bold", marginTop: 5 },
+    actionCardSubtitle: { fontSize: 10, textAlign: "center" },
 });

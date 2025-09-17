@@ -1,95 +1,36 @@
 import React, { useState, useContext } from "react";
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image, Alert } from "react-native";
-import { FontAwesome5 } from "@expo/vector-icons";
+import {View,Text,TouchableOpacity,TextInput,StyleSheet,ScrollView,Image,Alert,} from "react-native";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons"; 
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { loginUser } from "../../Src/Service/AuthService";
 
-
-const UserForm = ({ userType, password, setPassword, navigation, email, setEmail}) => {
+const UserForm = ({
+  userType,
+  email,
+  setEmail,
+  password,
+  setPassword,
+  onLogin,
+  loading,
+  navigation,
+}) => {
   const { theme } = useContext(ThemeContext);
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = async () => {
-    setLoading(true);
-    try {
-      const result = await loginUser(email, password);
-      if (result.success) {
-        Alert.alert("Exito", "Inicio de sesión exitoso", [
-          { Text: "Ok", onPress: () => console.log("login exitoso, redirigiendo automaticamente...") },
-        ]);
-      } else {
-        Alert.alert("Error de login", result.message || "Ocurrio un error al iniciar sesión",);
-      }
-    } catch (error) {
-      console.error("Error inesperado en login", error);
-      Alert.alert("Error", "Ocurrio un error inesperado al intentar iniciar sesión",);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const styles = StyleSheet.create({
-    formContainer: {
-      backgroundColor: theme.cardBackground,
-      borderRadius: 12,
-      padding: 24,
-      marginHorizontal: 20,
-    },
-    formTitle: {
-      color: theme.text,
-      fontSize: 20,
-      fontWeight: "bold",
-      marginBottom: 20,
-      textAlign: "center",
-    },
-    input: {
-      backgroundColor: theme.background,
-      color: theme.text,
-      paddingVertical: 14,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 16,
-      fontSize: 16,
-    },
-    forgotText: {
-      color: theme.primary,
-      fontSize: 14,
-      textAlign: "right",
-      marginBottom: 24,
-    },
-    loginBtn: {
-      backgroundColor: theme.primary,
-      paddingVertical: 16,
-      borderRadius: 8,
-      alignItems: "center",
-      marginBottom: 10,
-    },
-    loginText: {
-      color: "#fff",
-      fontWeight: "bold",
-      fontSize: 18,
-    },
-    registerBtn: {
-      backgroundColor: "transparent",
-      paddingVertical: 16,
-      borderRadius: 8,
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: theme.primary,
-    },
-    registerText: {
-      color: theme.primary,
-      fontWeight: "bold",
-      fontSize: 18,
-    },
-  });
+  const [secureText, setSecureText] = useState(true);
 
   return (
-    <View style={styles.formContainer}>
-      <Text style={styles.formTitle}>Acceso para {userType}</Text>
+    <View
+      style={[styles.formContainer, { backgroundColor: theme.cardBackground }]}
+    >
+      <Text style={[styles.formTitle, { color: theme.text }]}>
+        Acceso para {userType}
+      </Text>
+
       <TextInput
-        style={styles.input}
+        style={[
+          styles.input,
+          { backgroundColor: theme.background, color: theme.text },
+        ]}
         placeholder="Correo Electrónico"
         placeholderTextColor={theme.subtitle}
         keyboardType="email-address"
@@ -98,72 +39,140 @@ const UserForm = ({ userType, password, setPassword, navigation, email, setEmail
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        placeholderTextColor={theme.subtitle}
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[
+            styles.input,
+            { backgroundColor: theme.background, color: theme.text },
+          ]}
+          placeholder="Contraseña"
+          placeholderTextColor={theme.subtitle}
+          secureTextEntry={secureText}
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity
+          style={styles.iconContainer}
+          onPress={() => setSecureText(!secureText)}
+        >
+          <Ionicons
+            name={secureText ? "eye-off" : "eye"}
+            size={22}
+            color={theme.text}
+          />
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity>
-        <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+        <Text style={[styles.forgotText, { color: theme.primary }]}>
+          ¿Olvidaste tu contraseña?
+        </Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} disabled={!loading}>
-        <Text style={styles.loginText}>Iniciar Sesión</Text>
+
+      <TouchableOpacity
+        style={[styles.loginBtn, { backgroundColor: theme.primary }]}
+        onPress={onLogin}
+        disabled={loading}
+      >
+        <Text style={styles.loginText}>
+          {loading ? "Cargando..." : "Iniciar Sesión"}
+        </Text>
       </TouchableOpacity>
+
       {userType === "Paciente" && (
-        <TouchableOpacity style={styles.registerBtn} onPress={() => navigation.navigate("Registro", { userType })}>
-          <Text style={styles.registerText}>Registrarse</Text>
+        <TouchableOpacity
+          style={[styles.registerBtn, { borderColor: theme.primary }]}
+          onPress={() => navigation.navigate("Registro", { userType })}
+        >
+          <Text style={[styles.registerText, { color: theme.primary }]}>
+            Registrarse
+          </Text>
         </TouchableOpacity>
       )}
     </View>
   );
 };
 
+// --- PANTALLA PRINCIPAL DE LOGIN ---
 export default function LoginScreen({ navigation }) {
-  const [userType, setUserType] = useState("Paciente");
-  const [password, setPassword] = useState("");
-  const [lic_medica, setLic_medica] = useState("");
-  const [email, setEmail] = useState("");
-  const [codEmpleado, setCodEmpleado] = useState("");
   const { theme } = useContext(ThemeContext);
+  const [userType, setUserType] = useState("Paciente");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const renderForm = () => {
-    switch (userType) {
-      case "Paciente":
-        return <UserForm userType="Paciente" {...{ email, setEmail, password, setPassword, navigation }} />;
-      case "Doctor":
-        return <UserForm userType="Doctor" {...{ email, setEmail, password, setPassword, lic_medica, setLic_medica, navigation }} />;
-      case "Recepcionista":
-        return <UserForm userType="Recepcionista" {...{ email, setEmail, password, setPassword, codEmpleado, setCodEmpleado, navigation }} />;
-      default:
-        return null;
+  // --- FUNCION HANDLELOGIN ---
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Por favor ingresa correo y contraseña.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await loginUser(email, password);
+      console.log("Resultado login:", result);
+
+      if (result.success) {
+        Alert.alert("Éxito", "Inicio de sesión exitoso", [
+          {
+            text: "Ok",
+            onPress: () => navigation.replace("DashboardPaciente"),
+          },
+        ]);
+      } else {
+        Alert.alert("Error de login", result.message || "Credenciales inválidas");
+      }
+    } catch (error) {
+      console.error("Error inesperado en login", error);
+      Alert.alert(
+        "Error",
+        "Ocurrió un error inesperado al intentar iniciar sesión"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={[styles(theme).container]}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { backgroundColor: theme.background },
+        ]}
+      >
+        {/* Imagen de portada */}
         <Image
           source={{ uri: "https://example.com/coverImage.png" }}
-          style={styles(theme).coverImage}
+          style={styles.coverImage}
           resizeMode="cover"
         />
 
-        <View style={styles(theme).header}>
-          <View style={styles(theme).logoContainer}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View
+            style={[styles.logoContainer, { backgroundColor: theme.cardBackground }]}
+          >
             <FontAwesome5 name="heartbeat" size={40} color={theme.primary} />
           </View>
-          <Text style={[styles(theme).headerTitle]}>Clínica los Andes</Text>
-          <Text style={[styles(theme).headerSubtitle]}>Inicia sesión en tu cuenta</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>
+            Clínica los Andes
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: theme.subtitle }]}>
+            Inicia sesión en tu cuenta
+          </Text>
         </View>
 
-        <View style={[styles(theme).roleSelector]}>
-          {/* Paciente */}
+        {/* Selector de roles */}
+        <View
+          style={[styles.roleSelector, { backgroundColor: theme.cardBackground }]}
+        >
           <TouchableOpacity
-            style={[styles(theme).roleTab, userType === "Paciente" && styles(theme).roleTabActive]}
+            style={[
+              styles.roleTab,
+              userType === "Paciente" && { backgroundColor: theme.primary },
+            ]}
             onPress={() => setUserType("Paciente")}
           >
             <FontAwesome5
@@ -171,14 +180,21 @@ export default function LoginScreen({ navigation }) {
               size={20}
               color={userType === "Paciente" ? theme.background : theme.text}
             />
-            <Text style={[styles(theme).roleTabText, userType === "Paciente" && styles(theme).roleTabTextActive]}>
+            <Text
+              style={[
+                styles.roleTabText,
+                userType === "Paciente" && { color: theme.background },
+              ]}
+            >
               Paciente
             </Text>
           </TouchableOpacity>
 
-          {/* Doctor */}
           <TouchableOpacity
-            style={[styles(theme).roleTab, userType === "Doctor" && styles(theme).roleTabActive]}
+            style={[
+              styles.roleTab,
+              userType === "Doctor" && { backgroundColor: theme.primary },
+            ]}
             onPress={() => setUserType("Doctor")}
           >
             <FontAwesome5
@@ -186,14 +202,21 @@ export default function LoginScreen({ navigation }) {
               size={20}
               color={userType === "Doctor" ? theme.background : theme.text}
             />
-            <Text style={[styles(theme).roleTabText, userType === "Doctor" && styles(theme).roleTabTextActive]}>
+            <Text
+              style={[
+                styles.roleTabText,
+                userType === "Doctor" && { color: theme.background },
+              ]}
+            >
               Doctor
             </Text>
           </TouchableOpacity>
 
-          {/* Recepcionista */}
           <TouchableOpacity
-            style={[styles(theme).roleTab, userType === "Recepcionista" && styles(theme).roleTabActive]}
+            style={[
+              styles.roleTab,
+              userType === "Recepcionista" && { backgroundColor: theme.primary },
+            ]}
             onPress={() => setUserType("Recepcionista")}
           >
             <FontAwesome5
@@ -201,25 +224,40 @@ export default function LoginScreen({ navigation }) {
               size={20}
               color={userType === "Recepcionista" ? theme.background : theme.text}
             />
-            <Text style={[styles(theme).roleTabText, userType === "Recepcionista" && styles(theme).roleTabTextActive]}>
+            <Text
+              style={[
+                styles.roleTabText,
+                userType === "Recepcionista" && { color: theme.background },
+              ]}
+            >
               Recep.
             </Text>
           </TouchableOpacity>
         </View>
 
-        {renderForm()}
+        {/* Formulario */}
+        <UserForm
+          userType={userType}
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          onLogin={handleLogin}
+          loading={loading}
+          navigation={navigation}
+        />
       </ScrollView>
 
-      {/* Botón flotante para cambiar tema */}
+      {/* Botón para cambiar tema */}
       <ThemeSwitcher />
     </View>
   );
 }
 
-const styles = (theme) => StyleSheet.create({
+// --- ESTILOS ---
+const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: theme.background,
     paddingVertical: 0,
   },
   coverImage: {
@@ -235,7 +273,6 @@ const styles = (theme) => StyleSheet.create({
     paddingHorizontal: 20,
   },
   logoContainer: {
-    backgroundColor: theme.cardBackground,
     borderRadius: 35,
     width: 70,
     height: 70,
@@ -251,19 +288,16 @@ const styles = (theme) => StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: "bold",
-    color: theme.text,
     marginBottom: 5,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: theme.subtitle,
     marginTop: 5,
     marginBottom: 20,
   },
   roleSelector: {
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: theme.cardBackground,
     borderRadius: 12,
     padding: 6,
     marginBottom: 30,
@@ -278,16 +312,64 @@ const styles = (theme) => StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
   },
-  roleTabActive: {
-    backgroundColor: theme.primary,
-  },
   roleTabText: {
-    color: theme.subtitle,
     fontWeight: "600",
     marginLeft: 8,
     fontSize: 14,
   },
-  roleTabTextActive: {
-    color: theme.background,
+  formContainer: {
+    borderRadius: 12,
+    padding: 24,
+    marginHorizontal: 20,
+  },
+  formTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    paddingHorizontal: 10,
+    marginBottom: 15,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 16,
+  },
+  iconContainer: {
+    padding: 5,
+  },
+  forgotText: {
+    fontSize: 14,
+    textAlign: "right",
+    marginBottom: 24,
+  },
+  loginBtn: {
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  loginText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  registerBtn: {
+    backgroundColor: "transparent",
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    borderWidth: 1,
+  },
+  registerText: {
+    fontWeight: "bold",
+    fontSize: 18,
   },
 });

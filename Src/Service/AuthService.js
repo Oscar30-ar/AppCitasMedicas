@@ -19,7 +19,7 @@ export const loginUser = async(correo, clave) => {
 
         return {
             success: false,
-            message: error.response ? error.response.data : "Error de conexión",
-        };
+            message: error.response ? error.response.data : "Error de conexión"
+        }
     }
-};
+}
