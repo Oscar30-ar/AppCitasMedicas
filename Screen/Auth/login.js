@@ -1,11 +1,33 @@
 import React, { useState, useContext } from "react";
-import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image } from "react-native";
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, ScrollView, Image, Alert } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
+import { loginUser } from "../../Src/Service/AuthService";
 
-const UserForm = ({ userType, password, setPassword, navigation, lic_medica, setLic_medica, email, setEmail, codEmpleado, setCodEmpleado }) => {
+
+const UserForm = ({ userType, password, setPassword, navigation, email, setEmail}) => {
   const { theme } = useContext(ThemeContext);
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setLoading(true);
+    try {
+      const result = await loginUser(email, password);
+      if (result.success) {
+        Alert.alert("Exito", "Inicio de sesión exitoso", [
+          { Text: "Ok", onPress: () => console.log("login exitoso, redirigiendo automaticamente...") },
+        ]);
+      } else {
+        Alert.alert("Error de login", result.message || "Ocurrio un error al iniciar sesión",);
+      }
+    } catch (error) {
+      console.error("Error inesperado en login", error);
+      Alert.alert("Error", "Ocurrio un error inesperado al intentar iniciar sesión",);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const styles = StyleSheet.create({
     formContainer: {
@@ -85,30 +107,10 @@ const UserForm = ({ userType, password, setPassword, navigation, lic_medica, set
         onChangeText={setPassword}
       />
 
-      {userType === "Doctor" && (
-        <TextInput
-          style={styles.input}
-          placeholder="Número de licencia médica"
-          placeholderTextColor={theme.subtitle}
-          value={lic_medica}
-          onChangeText={setLic_medica}
-        />
-      )}
-
-      {userType === "Recepcionista" && (
-        <TextInput
-          style={styles.input}
-          placeholder="Código de empleado"
-          placeholderTextColor={theme.subtitle}
-          value={codEmpleado}
-          onChangeText={setCodEmpleado}
-        />
-      )}
-
       <TouchableOpacity>
         <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate("DashboardPacientes")}>
+      <TouchableOpacity style={styles.loginBtn} onPress={handleLogin} disabled={!loading}>
         <Text style={styles.loginText}>Iniciar Sesión</Text>
       </TouchableOpacity>
       {userType === "Paciente" && (
