@@ -23,3 +23,25 @@ export const loginUser = async(correo, clave) => {
         }
     }
 }
+
+export const logout = async (signOut) => {
+    try {
+        await apiConexion.post('/logout');
+        await AsyncStorage.removeItem("userToken");
+        console.log("Sesión cerrada correctamente.");
+        
+        // Llama a la función del contexto para actualizar el estado global
+        if (signOut) {
+            signOut();
+        }
+        return { success: true, message: "Sesión cerrada correctamente" };
+    } catch (error) {
+        console.error("Error al cerrar sesión: ", error.response ? error.response.data : error.message);
+        // Aún si el API falla, nos aseguramos de que el token local se borre
+        await AsyncStorage.removeItem("userToken");
+        if (signOut) {
+            signOut();
+        }
+        return { success: false, message: "Error al cerrar sesión, pero el token local fue eliminado." };
+    }
+};

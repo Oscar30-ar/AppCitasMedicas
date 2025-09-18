@@ -1,99 +1,12 @@
+// Screen/Auth/login.js
 import React, { useState, useContext } from "react";
-import {View,Text,TouchableOpacity,TextInput,StyleSheet,ScrollView,Image,Alert,} from "react-native";
-import { FontAwesome5, Ionicons } from "@expo/vector-icons"; 
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons"; 
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { loginUser } from "../../Src/Service/AuthService";
+import UserForm from "../../components/UserForm"; 
 
-const UserForm = ({
-  userType,
-  email,
-  setEmail,
-  password,
-  setPassword,
-  onLogin,
-  loading,
-  navigation,
-}) => {
-  const { theme } = useContext(ThemeContext);
-  const [secureText, setSecureText] = useState(true);
-
-  return (
-    <View
-      style={[styles.formContainer, { backgroundColor: theme.cardBackground }]}
-    >
-      <Text style={[styles.formTitle, { color: theme.text }]}>
-        Acceso para {userType}
-      </Text>
-
-      <TextInput
-        style={[
-          styles.input,
-          { backgroundColor: theme.background, color: theme.text },
-        ]}
-        placeholder="Correo Electrónico"
-        placeholderTextColor={theme.subtitle}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="email"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={[
-            styles.input,
-            { backgroundColor: theme.background, color: theme.text },
-          ]}
-          placeholder="Contraseña"
-          placeholderTextColor={theme.subtitle}
-          secureTextEntry={secureText}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={() => setSecureText(!secureText)}
-        >
-          <Ionicons
-            name={secureText ? "eye-off" : "eye"}
-            size={22}
-            color={theme.text}
-          />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity>
-        <Text style={[styles.forgotText, { color: theme.primary }]}>
-          ¿Olvidaste tu contraseña?
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.loginBtn, { backgroundColor: theme.primary }]}
-        onPress={onLogin}
-        disabled={loading}
-      >
-        <Text style={styles.loginText}>
-          {loading ? "Cargando..." : "Iniciar Sesión"}
-        </Text>
-      </TouchableOpacity>
-
-      {userType === "Paciente" && (
-        <TouchableOpacity
-          style={[styles.registerBtn, { borderColor: theme.primary }]}
-          onPress={() => navigation.navigate("Registro", { userType })}
-        >
-          <Text style={[styles.registerText, { color: theme.primary }]}>
-            Registrarse
-          </Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-};
-
-// --- PANTALLA PRINCIPAL DE LOGIN ---
 export default function LoginScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
   const [userType, setUserType] = useState("Paciente");
@@ -101,7 +14,11 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // --- FUNCION HANDLELOGIN ---
+  const clearInputs = () => {
+    setEmail("");
+    setPassword("");
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Por favor ingresa correo y contraseña.");
@@ -117,7 +34,9 @@ export default function LoginScreen({ navigation }) {
         Alert.alert("Éxito", "Inicio de sesión exitoso", [
           {
             text: "Ok",
-            onPress: () => navigation.replace("DashboardPaciente"),
+            onPress: () => {
+              navigation.replace("DashboardPaciente");
+            },
           },
         ]);
       } else {
@@ -173,7 +92,10 @@ export default function LoginScreen({ navigation }) {
               styles.roleTab,
               userType === "Paciente" && { backgroundColor: theme.primary },
             ]}
-            onPress={() => setUserType("Paciente")}
+            onPress={() => {
+              setUserType("Paciente");
+              clearInputs();
+            }}
           >
             <FontAwesome5
               name="user-injured"
@@ -183,7 +105,7 @@ export default function LoginScreen({ navigation }) {
             <Text
               style={[
                 styles.roleTabText,
-                userType === "Paciente" && { color: theme.background },
+                { color: userType === "Paciente" ? theme.background : theme.text },
               ]}
             >
               Paciente
@@ -195,7 +117,10 @@ export default function LoginScreen({ navigation }) {
               styles.roleTab,
               userType === "Doctor" && { backgroundColor: theme.primary },
             ]}
-            onPress={() => setUserType("Doctor")}
+            onPress={() => {
+              setUserType("Doctor");
+              clearInputs();
+            }}
           >
             <FontAwesome5
               name="user-md"
@@ -205,7 +130,7 @@ export default function LoginScreen({ navigation }) {
             <Text
               style={[
                 styles.roleTabText,
-                userType === "Doctor" && { color: theme.background },
+                { color: userType === "Doctor" ? theme.background : theme.text },
               ]}
             >
               Doctor
@@ -217,7 +142,10 @@ export default function LoginScreen({ navigation }) {
               styles.roleTab,
               userType === "Recepcionista" && { backgroundColor: theme.primary },
             ]}
-            onPress={() => setUserType("Recepcionista")}
+            onPress={() => {
+              setUserType("Recepcionista");
+              clearInputs();
+            }}
           >
             <FontAwesome5
               name="user-tie"
@@ -227,7 +155,7 @@ export default function LoginScreen({ navigation }) {
             <Text
               style={[
                 styles.roleTabText,
-                userType === "Recepcionista" && { color: theme.background },
+                { color: userType === "Recepcionista" ? theme.background : theme.text },
               ]}
             >
               Recep.
@@ -235,7 +163,7 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Formulario */}
+        {/* Renderizado del único formulario */}
         <UserForm
           userType={userType}
           email={email}
@@ -316,60 +244,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 8,
     fontSize: 14,
-  },
-  formContainer: {
-    borderRadius: 12,
-    padding: 24,
-    marginHorizontal: 20,
-  },
-  formTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    paddingHorizontal: 10,
-    marginBottom: 15,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 16,
-  },
-  iconContainer: {
-    padding: 5,
-  },
-  forgotText: {
-    fontSize: 14,
-    textAlign: "right",
-    marginBottom: 24,
-  },
-  loginBtn: {
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  loginText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  registerBtn: {
-    backgroundColor: "transparent",
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    borderWidth: 1,
-  },
-  registerText: {
-    fontWeight: "bold",
-    fontSize: 18,
   },
 });

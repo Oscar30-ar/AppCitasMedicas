@@ -10,20 +10,15 @@ export default function DashboardScreen() {
     const { theme } = useContext(ThemeContext);
     const navigation = useNavigation();
 
+    const { signOut } = useContext(AuthContext); 
+
     const handleLogout = async () => {
         try {
-            await AsyncStorage.removeItem("userToken");
-            console.log("Sesión cerrada correctamente.");
-
-            navigation.reset({
-                index: 0,
-                routes: [{ name: "Auth" }],
-            });
+            await logout(signOut); 
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
         }
     };
-
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
