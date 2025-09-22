@@ -1,9 +1,21 @@
 import React, { useState, useContext } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert, ActivityIndicator, Platform } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+  Platform,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
+import { registrarPaciente } from "../../Src/Service/AuthService";
 
 export default function RegisterPatientScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
@@ -11,10 +23,14 @@ export default function RegisterPatientScreen({ navigation }) {
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [documento, setDocumento] = useState("");
-  const [telefono, setTelefono] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [celular, setCelular] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [ciudad, setCiudad] = useState("");
+  const [clave, setClave] = useState("");
+  const [confirmarClave, setConfirmarClave] = useState("");
+  const [eps, setEps] = useState("");
+  const [Rh, setRh] = useState("");
+  const [genero, setGenero] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState(new Date());
 
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -23,34 +39,73 @@ export default function RegisterPatientScreen({ navigation }) {
 
   const onDateChange = (event, selectedDate) => {
     const currentDate = selectedDate || fechaNacimiento;
-    setShowDatePicker(Platform.OS === 'ios');
+    setShowDatePicker(Platform.OS === "ios");
     setFechaNacimiento(currentDate);
   };
 
+  const handleRegister = async () => {
+    if (validateForm()) {
+      setLoading(true);
+      try {
+        const userData = {
+          nombre,
+          apellido,
+          documento,
+          correo,
+          clave,
+          confirmarClave,
+          celular,
+          ciudad,
+          eps,
+          Rh,
+          genero,
+          fecha_nacimiento: fechaNacimiento.toISOString().split("T")[0],
+        };
+
+        const result = await registrarPaciente(userData);
+
+        if (result.success) {
+          Alert.alert("Registro exitoso", result.message);
+          navigation.navigate("Login");
+        } else {
+          Alert.alert("Error de registro", result.message);
+        }
+      } catch (error) {
+        console.error("Error inesperado en registro", error);
+        Alert.alert(
+          "Error",
+          "Ocurrió un error inesperado durante el registro."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   const validateForm = () => {
-    if (!nombre || !apellido || !documento || !telefono || !email || !password || !confirmPassword) {
+    if (
+      !nombre ||
+      !apellido ||
+      !documento ||
+      !celular ||
+      !correo ||
+      !clave ||
+      !confirmarClave ||
+      !eps ||
+      !Rh ||
+      !genero||
+      !ciudad
+    ) {
       Alert.alert("Error de registro", "Todos los campos son obligatorios.");
       return false;
     }
-    if (password !== confirmPassword) {
+    if (clave !== confirmarClave) {
       Alert.alert("Error de registro", "Las contraseñas no coinciden.");
       return false;
     }
     return true;
   };
 
-  const handleRegister = () => {
-    if (validateForm()) {
-      setLoading(true);
-      console.log("Registrando paciente:", { nombre, apellido, documento, telefono, email, password, fechaNacimiento });
-      
-      setTimeout(() => {
-        setLoading(false);
-        Alert.alert("Registro exitoso", "Tu cuenta ha sido creada. Ahora puedes iniciar sesión.");
-        navigation.navigate("Login");
-      }, 2000);
-    }
-  };
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -104,6 +159,14 @@ export default function RegisterPatientScreen({ navigation }) {
       color: fechaNacimiento ? theme.text : theme.subtitle,
       fontSize: 16,
     },
+    picker: {
+      backgroundColor: theme.background,
+      color: theme.text,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginBottom: 12,
+    },
     registerBtn: {
       backgroundColor: theme.primary,
       padding: 15,
@@ -135,7 +198,10 @@ export default function RegisterPatientScreen({ navigation }) {
   });
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }} style={{ backgroundColor: theme.background }}>
+    <ScrollView
+      contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+      style={{ backgroundColor: theme.background }}
+    >
       <View style={styles.container}>
         <Text style={styles.title}>Registro de Paciente</Text>
 
@@ -166,14 +232,25 @@ export default function RegisterPatientScreen({ navigation }) {
             style={styles.input}
             placeholder="Teléfono"
             placeholderTextColor={theme.subtitle}
-            value={telefono}
+            value={celular}
             keyboardType="phone-pad"
-            onChangeText={setTelefono}
+            onChangeText={setCelular}
           />
+          <TextInput
+    style={styles.input}
+    placeholder="Ciudad"
+    placeholderTextColor={theme.subtitle}
+    value={ciudad}
+    onChangeText={setCiudad}
+/>
 
-          <TouchableOpacity style={styles.inputContainer} onPress={() => setShowDatePicker(true)}>
+          {/* Fecha de nacimiento */}
+          <TouchableOpacity
+            style={styles.inputContainer}
+            onPress={() => setShowDatePicker(true)}
+          >
             <Text style={styles.dateText}>
-              {fechaNacimiento.toISOString().split('T')[0]}
+              {fechaNacimiento.toISOString().split("T")[0]}
             </Text>
             <Ionicons name="calendar-outline" size={24} color={theme.subtitle} />
           </TouchableOpacity>
@@ -192,18 +269,19 @@ export default function RegisterPatientScreen({ navigation }) {
             placeholderTextColor={theme.subtitle}
             keyboardType="email-address"
             autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
+            value={correo}
+            onChangeText={setCorreo}
           />
-          
+
+          {/* Contraseña */}
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.passwordInput}
               placeholder="Contraseña"
               placeholderTextColor={theme.subtitle}
               secureTextEntry={secureText}
-              value={password}
-              onChangeText={setPassword}
+              value={clave}
+              onChangeText={setClave}
             />
             <TouchableOpacity onPress={() => setSecureText(!secureText)}>
               <Ionicons
@@ -220,8 +298,8 @@ export default function RegisterPatientScreen({ navigation }) {
               placeholder="Confirmar contraseña"
               placeholderTextColor={theme.subtitle}
               secureTextEntry={secureText}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              value={confirmarClave}
+              onChangeText={setConfirmarClave}
             />
             <TouchableOpacity onPress={() => setSecureText(!secureText)}>
               <Ionicons
@@ -232,8 +310,52 @@ export default function RegisterPatientScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity 
-            style={[styles.registerBtn, { backgroundColor: theme.primary }]} 
+          {/* Select EPS */}
+          <Picker
+            selectedValue={eps}
+            style={styles.picker}
+            onValueChange={(itemValue) => setEps(itemValue)}
+          >
+            <Picker.Item label="Seleccione su EPS" value="" />
+            <Picker.Item label="Sura" value="Sura" />
+            <Picker.Item label="Sanitas" value="Sanitas" />
+            <Picker.Item label="Nueva EPS" value="Nueva EPS" />
+            <Picker.Item label="Compensar" value="Compensar" />
+            <Picker.Item label="Otra" value="Otra" />
+          </Picker>
+
+          {/* Select Rh */}
+          <Picker
+            selectedValue={Rh}
+            style={styles.picker}
+            onValueChange={(itemValue) => setRh(itemValue)}
+          >
+            <Picker.Item label="Seleccione su tipo de sangre" value="" />
+            <Picker.Item label="A+" value="A+" />
+            <Picker.Item label="A-" value="A-" />
+            <Picker.Item label="B+" value="B+" />
+            <Picker.Item label="B-" value="B-" />
+            <Picker.Item label="AB+" value="AB+" />
+            <Picker.Item label="AB-" value="AB-" />
+            <Picker.Item label="O+" value="O+" />
+            <Picker.Item label="O-" value="O-" />
+          </Picker>
+
+          {/* Select Género */}
+          <Picker
+            selectedValue={genero}
+            style={styles.picker}
+            onValueChange={(itemValue) => setGenero(itemValue)}
+          >
+            <Picker.Item label="Seleccione su género" value="" />
+            <Picker.Item label="Masculino" value="Masculino" />
+            <Picker.Item label="Femenino" value="Femenino" />
+            <Picker.Item label="Otro" value="Otro" />
+          </Picker>
+
+          {/* Botones */}
+          <TouchableOpacity
+            style={[styles.registerBtn, { backgroundColor: theme.primary }]}
             onPress={handleRegister}
             disabled={loading}
             activeOpacity={0.7}

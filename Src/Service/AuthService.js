@@ -37,3 +37,14 @@ export const logout = async () => {
         return { success: false, message: "Ocurrió un error al intentar cerrar la sesión." };
     }
 };
+
+export const registrarPaciente = async (userData) => {
+    try {
+        const response = await apiConexion.post('/registrarPaciente', userData);
+        return { success: true, message: "Registro exitoso", user: response.data };
+    } catch (error) {
+        console.error("Error en registrarPaciente:", error);
+        const errorMessage = error.response?.data?.message || "Error al registrar paciente";
+        return { success: false, message: errorMessage };
+    }
+};
