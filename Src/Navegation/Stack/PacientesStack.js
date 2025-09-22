@@ -5,12 +5,11 @@ import HistorialMedicoScreen from "../../../Screen/Pacientes/HistorialMedico";
 
 const Stack = createNativeStackNavigator();
 
-export default function Pacientes_Stack({ setUserToken }){ // Asegúrate de recibir la prop
+export default function Pacientes_Stack({ setUserToken }){ 
     return(
         <Stack.Navigator>
             <Stack.Screen
                 name="DashboardPacientes"
-                // Usa `children` para pasar la prop setUserToken
                 children={(props) => <DashboardScreen {...props} setUserToken={setUserToken} />}
                 options={{title: "Pacientes"}}
             />
