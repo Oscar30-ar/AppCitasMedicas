@@ -5,6 +5,7 @@ import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { loginUser } from "../../Src/Service/AuthService";
 import UserForm from "../../components/UserForm"; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation, setUserToken  }) {
   const { theme } = useContext(ThemeContext);
@@ -30,6 +31,8 @@ export default function LoginScreen({ navigation, setUserToken  }) {
     console.log("Resultado login:", result);
 
     if (result.success) {
+      await AsyncStorage.setItem("userToken", result.token);
+      await AsyncStorage.setItem("userRole", result.role);
       Alert.alert("Éxito", "Inicio de sesión exitoso", [
         {
           text: "Ok",

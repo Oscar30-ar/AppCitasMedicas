@@ -25,12 +25,9 @@ export const loginUser = async (email, password, role) => {
 
 export const logout = async () => {
     try {
-        // Elimina el token de AsyncStorage directamente para cerrar la sesión localmente
         await AsyncStorage.removeItem("userToken");
         console.log("Sesión cerrada correctamente.");
 
-        // No es necesario llamar al endpoint /logout desde el cliente si el token ya ha sido eliminado.
-        // La validación del token puede ser manejada por la expiración en el servidor.
         return { success: true, message: "Sesión cerrada correctamente" };
     } catch (error) {
         console.error("Error inesperado en logout:", error.message);

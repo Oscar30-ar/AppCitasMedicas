@@ -237,12 +237,12 @@ export default function RegisterPatientScreen({ navigation }) {
             onChangeText={setCelular}
           />
           <TextInput
-    style={styles.input}
-    placeholder="Ciudad"
-    placeholderTextColor={theme.subtitle}
-    value={ciudad}
-    onChangeText={setCiudad}
-/>
+              style={styles.input}
+              placeholder="Ciudad"
+              placeholderTextColor={theme.subtitle}
+              value={ciudad}
+              onChangeText={setCiudad}
+          />
 
           {/* Fecha de nacimiento */}
           <TouchableOpacity
