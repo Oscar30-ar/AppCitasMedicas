@@ -1,4 +1,3 @@
-// Screen/Auth/login.js
 import React, { useState, useContext } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons"; 
@@ -7,7 +6,7 @@ import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { loginUser } from "../../Src/Service/AuthService";
 import UserForm from "../../components/UserForm"; 
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({ navigation, setUserToken  }) {
   const { theme } = useContext(ThemeContext);
   const [userType, setUserType] = useState("Paciente");
   const [email, setEmail] = useState("");
@@ -20,38 +19,39 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Por favor ingresa correo y contraseña.");
-      return;
-    }
+  if (!email || !password) {
+    Alert.alert("Error", "Por favor ingresa correo y contraseña.");
+    return;
+  }
 
-    setLoading(true);
-    try {
-      const result = await loginUser(email, password);
-      console.log("Resultado login:", result);
+  setLoading(true);
+  try {
+    const result = await loginUser(email, password, userType);
+    console.log("Resultado login:", result);
 
-      if (result.success) {
-        Alert.alert("Éxito", "Inicio de sesión exitoso", [
-          {
-            text: "Ok",
-            onPress: () => {
-              navigation.replace("DashboardPaciente");
-            },
+    if (result.success) {
+      Alert.alert("Éxito", "Inicio de sesión exitoso", [
+        {
+          text: "Ok",
+          onPress: () => {
+            setUserToken(result.token);
           },
-        ]);
-      } else {
-        Alert.alert("Error de login", result.message || "Credenciales inválidas");
-      }
-    } catch (error) {
-      console.error("Error inesperado en login", error);
-      Alert.alert(
-        "Error",
-        "Ocurrió un error inesperado al intentar iniciar sesión"
-      );
-    } finally {
-      setLoading(false);
+        },
+      ]);
+    } else {
+      Alert.alert("Error de login", result.message || "Credenciales inválidas");
     }
-  };
+  } catch (error) {
+    console.error("Error inesperado en login", error);
+    Alert.alert(
+      "Error",
+      "Ocurrió un error inesperado al intentar iniciar sesión"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <View style={{ flex: 1 }}>

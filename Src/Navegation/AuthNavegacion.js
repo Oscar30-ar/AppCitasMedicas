@@ -5,14 +5,15 @@ import DashboardComponent from "../../Screen/Pacientes/DashboardPaciente";
 
 const Stack = createNativeStackNavigator();
 
-export default function AuthNavegacion(){
+export default function AuthNavegacion({ setUserToken }){
     return(
         <Stack.Navigator>
             <Stack.Screen
                 name="Login"
-                component={Login}
+                children={(props) => <Login {...props} setUserToken={setUserToken} />}
                 options={{title:"Iniciar Sesión"}}
             />
+
 
             <Stack.Screen
                 name="DashboardPaciente"

@@ -1,27 +1,48 @@
-import React, { useContext } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
-import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import React, { useContext, useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert } from "react-native";
+import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import { logout } from "../../Src/Service/AuthService";
 
-export default function DashboardScreen() {
+export default function DashboardScreen({ setUserToken }) {
     const { theme } = useContext(ThemeContext);
     const navigation = useNavigation();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-    const { signOut } = useContext(AuthContext); 
+    const handleLogoutConfirmation = () => {
+        setShowLogoutModal(true);
+    };
 
-    const handleLogout = async () => {
+    const handleConfirmLogout = async () => {
+        setShowLogoutModal(false);
         try {
-            await logout(signOut); 
+            await logout();
+            Alert.alert(
+                "¡Éxito!",
+                "Has cerrado sesión correctamente.",
+                [
+                    { 
+                        text: "Aceptar", 
+                        onPress: () => {
+                            setUserToken(null);
+                        }
+                    }
+                ],
+                { cancelable: false }
+            );
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
         }
     };
 
+    const handleCancelLogout = () => {
+        setShowLogoutModal(false);
+    };
+
     return (
-        <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
+        <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
@@ -31,7 +52,7 @@ export default function DashboardScreen() {
                 <View style={styles.headerIcons}>
                     <ThemeSwitcher />
                     {/* Botón de logout */}
-                    <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+                    <TouchableOpacity onPress={handleLogoutConfirmation} style={styles.logoutBtn}>
                         <Ionicons name="log-out-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
                 </View>
@@ -112,13 +133,49 @@ export default function DashboardScreen() {
                     <Text style={[styles.actionCardSubtitle, { color: theme.subtitle }]}>Actualizar información</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Modal de confirmación personalizado */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={showLogoutModal}
+                onRequestClose={handleCancelLogout}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContainer, { backgroundColor: theme.cardBackground }]}>
+                        <Text style={[styles.modalTitle, { color: theme.text }]}>Cerrar Sesión</Text>
+                        <Text style={[styles.modalMessage, { color: theme.subtitle }]}>
+                            ¿Estás seguro de que quieres cerrar tu sesión?
+                        </Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity style={styles.modalCancelButton} onPress={handleCancelLogout}>
+                                <Text style={styles.modalCancelText}>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalConfirmButton, { backgroundColor: theme.primary }]}
+                                onPress={handleConfirmLogout}
+                            >
+                                <Text style={styles.modalConfirmText}>Aceptar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, padding: 15 },
-    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
+    container: {
+        flexGrow: 1,
+        padding: 15
+    },
+    header: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 20
+    },
     titleContainer: { flexDirection: "row", alignItems: "center" },
     title: { fontSize: 22, fontWeight: "bold", marginRight: 10 },
     subtitle: { fontSize: 16, fontWeight: "400" },
@@ -143,4 +200,61 @@ const styles = StyleSheet.create({
     actionCard: { width: "30%", borderRadius: 12, padding: 15, alignItems: "center", justifyContent: "center", marginBottom: 10 },
     actionCardTitle: { fontSize: 12, fontWeight: "bold", marginTop: 5 },
     actionCardSubtitle: { fontSize: 10, textAlign: "center" },
+
+    // Estilos para el modal de cerrar sesion
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        width: 300,
+        padding: 20,
+        borderRadius: 15,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    modalMessage: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    modalCancelButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginRight: 10,
+        borderWidth: 1,
+        borderColor: '#94a3b8',
+    },
+    modalCancelText: {
+        color: '#94a3b8',
+        fontWeight: 'bold',
+    },
+    modalConfirmButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalConfirmText: {
+        color: 'white',
+        fontWeight: 'bold',
+    },
 });

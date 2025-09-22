@@ -6,12 +6,12 @@ const API_BASE_URL = "http://192.168.101.73:8000/api";
 const apiConexion = axios.create({
     baseURL: API_BASE_URL,
     headers: {
-        "Accept": "applicattion/json",
+        "Accept": "application/json",
         "Content-Type": "application/json",
     },
 });
 
-const RutasPublicas = ['/login', 'registrar'];
+const RutasPublicas = ['/login', '/registrar'];
 
 apiConexion.interceptors.request.use(
     async (config) => {

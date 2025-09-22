@@ -49,7 +49,7 @@ export default function AppNavegacion(){
 
     return(
         <NavigationContainer>
-           {userToken ? <NavegacionPrincipal/> : <AuthNavegacion/>}
+           {userToken ? <NavegacionPrincipal setUserToken={setUserToken} /> : <AuthNavegacion setUserToken={setUserToken} />}
         </NavigationContainer>
     );
 }
