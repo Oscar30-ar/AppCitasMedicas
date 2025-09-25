@@ -6,8 +6,8 @@ import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { useNavigation } from "@react-navigation/native";
 import { logout } from "../../Src/Service/AuthService";
 
-export default function DashboardScreen({ setUserToken }) {
-    console.log("DashboardScreen (Paciente) se está renderizando.");
+export default function DashboardRecepcionista({ setUserToken }) {
+    console.log("DashboardScreen (Medico) se está renderizando."); 
 
     const { theme } = useContext(ThemeContext);
     const navigation = useNavigation();
@@ -49,7 +49,7 @@ export default function DashboardScreen({ setUserToken }) {
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
                     <Text style={[styles.title, { color: theme.text }]}>Clínica los Andes</Text>
-                    <Text style={[styles.subtitle, { color: theme.subtitle }]}>Panel del Paciente</Text>
+                    <Text style={[styles.subtitle, { color: theme.subtitle }]}>Panel del Recepcionista</Text>
                 </View>
                 <View style={styles.headerIcons}>
                     <ThemeSwitcher />
@@ -62,7 +62,7 @@ export default function DashboardScreen({ setUserToken }) {
 
             {/* Bienvenida */}
             <View style={[styles.welcomeCard, { backgroundColor: theme.cardBackground }]}>
-                <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenido, Juan Pérez</Text>
+                <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenido, Dr. Oscar</Text>
                 <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
                     ¿Necesitas programar una nueva cita? Estamos aquí para ayudarte.
                 </Text>

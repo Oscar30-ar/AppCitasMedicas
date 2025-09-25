@@ -3,15 +3,16 @@ import Login  from "../../Screen/Auth/login";
 import Registro  from "../../Screen/Auth/registroPaciente";
 import DashboardComponent from "../../Screen/Pacientes/DashboardPaciente";
 import DashboardMedico from "../../Screen/Medicos/DashboardMedico";
+import DashboardRecepcionista from "../../Screen/Recepcionista/DashboardRecepcionista";
 
 const Stack = createNativeStackNavigator();
 
-export default function AuthNavegacion({ setUserToken }){
+export default function AuthNavegacion({ setUserToken, setUserRole }){
     return(
         <Stack.Navigator>
             <Stack.Screen
                 name="Login"
-                children={(props) => <Login {...props} setUserToken={setUserToken} />}
+                children={(props) => <Login {...props} setUserToken={setUserToken} setUserRole={setUserRole}/>}
                 options={{title:"Iniciar Sesión"}}
             />
 
@@ -26,6 +27,11 @@ export default function AuthNavegacion({ setUserToken }){
                 name="DashboardMedico"
                 component={DashboardMedico}
                 options={{title:"DashboardMedico"}}
+            />
+            <Stack.Screen
+                name="DashboardRecepcionista"
+                component={DashboardRecepcionista}
+                options={{title:"DashboardRecepcionista"}}
             />
 
             <Stack.Screen

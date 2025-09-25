@@ -22,7 +22,7 @@ const settingsOptions = [
   },
 ];
 
-export default function configuracion_Medico() {
+export default function configuracion_Recepcionista() {
   const { theme } = useContext(ThemeContext);
 
   const styles = StyleSheet.create({

@@ -1,12 +1,14 @@
 import { NavigationContainer } from '@react-navigation/native';
-import NavegacionPrincipal from "./NavegacionPrincipal";
-import AuthNavegacion from "./AuthNavegacion";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useEffect, useRef, use } from 'react';
-import { AppState, ActivityIndicator, View, StyleSheet } from 'react-native';
-import Medico_Stack from './Stack/MedicosStack'; 
-import RecepcionistaStack from './Stack/RecepcionistaStack'; 
-import Pacientes_Stack from './Stack/PacientesStack';
+import React, { useState, useEffect, useRef } from 'react';
+import { AppState, ActivityIndicator, View, Text, StyleSheet } from 'react-native';
+
+// Navegaciones
+import AuthNavegacion from "./AuthNavegacion";
+import NavegacionMedico from './NavegacionMedico';
+import NavegacionPaciente from './NavegacionPaciente';
+import RecepcionistaStack from './Stack/RecepcionistaStack';
+import NavegacionRecepcionista from './NavegacionRecepcionista';
 
 export default function AppNavegacion() {
     const [isLoading, setIsLoading] = useState(true);
@@ -27,53 +29,58 @@ export default function AppNavegacion() {
         }
     };
 
-    //Se ejecuta cuando el componente se monta por primera vez
     useEffect(() => {
         loadToken();
     }, []);
 
-    const renderMainStack = () => {
-        switch (userRole) {
-            case "Paciente":
-                return <Pacientes_Stack setUserToken={setUserToken} />;
-            case "Doctor":
-                return <Medico_Stack setUserToken={setUserToken} />;
-            case "Recepcionista":
-                return <RecepcionistaStack setUserToken={setUserToken} />;
-            default:
-                return null;
-        }
-    }
-
-    //se ejecuta cuando hay cambio de estado en la app (inactiva/activa/Background)
+    // Manejo de estados de la app (foreground/background)
     useEffect(() => {
         const handleAppStateChange = (nextAppState) => {
             if (appState.current.match(/inactive|background/) && nextAppState === "active") {
-                console.log("La app ha vuelto a primer plano, verificando token...");
+                console.log("La app volvió a primer plano, verificando token...");
                 loadToken();
             }
             appState.current = nextAppState;
         };
-        const subircription = AppState.addEventListener("change", handleAppStateChange);
+
+        const subscription = AppState.addEventListener("change", handleAppStateChange);
+        return () => subscription.remove();
     }, []);
 
-    //se ejecuta en un intervalo de 2 segundos
-    useEffect(() => {
-        const interval = setInterval(() => {
+    // Mientras se carga AsyncStorage
+    if (isLoading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="blue" />
+                <Text>Cargando...</Text>
+            </View>
+        );
+    }
 
-        }, 2000);
-        return () => clearInterval(interval);
-    }, []);
-
-
+    const renderMainStack = () => {
+        switch (userRole) {
+            case "paciente":
+                return <NavegacionPaciente setUserToken={setUserToken} />;
+            case "doctor":
+                return <NavegacionMedico setUserToken={setUserToken} />;
+            case "recepcionista":
+                return <NavegacionRecepcionista setUserToken={setUserToken} />;
+            default:
+                return <AuthNavegacion setUserToken={setUserToken} />;
+        }
+    };
 
     return (
         <NavigationContainer>
-            {userToken ? (
-                renderMainStack()
-            ) : (
-                <AuthNavegacion setUserToken={setUserToken} />
-            )}
+            {userToken ? renderMainStack() : <AuthNavegacion setUserToken={setUserToken} setUserRole={setUserRole}/>}
         </NavigationContainer>
     );
 }
+
+const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+});

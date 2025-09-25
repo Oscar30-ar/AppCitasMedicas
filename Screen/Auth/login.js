@@ -1,15 +1,15 @@
 import React, { useState, useContext } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from "react-native";
-import { FontAwesome5 } from "@expo/vector-icons"; 
+import { FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { loginUser } from "../../Src/Service/AuthService";
-import UserForm from "../../components/UserForm"; 
+import UserForm from "../../components/UserForm";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function LoginScreen({ navigation, setUserToken  }) {
+export default function LoginScreen({ navigation, setUserToken, setUserRole }) {
   const { theme } = useContext(ThemeContext);
-  const [userType, setUserType] = useState("Paciente");
+  const [userType, setUserType] = useState("paciente", "medico", "recepcionista");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,42 +19,51 @@ export default function LoginScreen({ navigation, setUserToken  }) {
     setPassword("");
   };
 
+
   const handleLogin = async () => {
-  if (!email || !password) {
-    Alert.alert("Error", "Por favor ingresa correo y contraseña.");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const result = await loginUser(email, password, userType);
-    console.log("Resultado login:", result);
-
-    if (result.success) {
-      await AsyncStorage.setItem("userToken", result.token);
-      await AsyncStorage.setItem("userRole", result.role);
-      Alert.alert("Éxito", "Inicio de sesión exitoso", [
-        {
-          text: "Ok",
-          onPress: () => {
-            setUserToken(result.token);
-          },
-        },
-      ]);
-    } else {
-      Alert.alert("Error de login", result.message || "Credenciales inválidas");
+    if (!email || !password) {
+      Alert.alert("Error", "Por favor ingresa correo y contraseña.");
+      return;
     }
-  } catch (error) {
-    console.error("Error inesperado en login", error);
-    Alert.alert(
-      "Error",
-      "Ocurrió un error inesperado al intentar iniciar sesión"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
 
+    setLoading(true);
+
+    try {
+
+      await AsyncStorage.removeItem("userToken");
+      await AsyncStorage.removeItem("userRole");
+      setUserToken(null);
+      setUserRole(null); 
+
+      const result = await loginUser(email, password, userType);
+      console.log("Resultado login:", result);
+
+      if (result.success) {
+        await AsyncStorage.setItem("userToken", result.token);
+        await AsyncStorage.setItem("userRole", result.role);
+
+        Alert.alert("Éxito", "Inicio de sesión exitoso", [
+          {
+            text: "Ok",
+            onPress: () => {
+              setUserToken(result.token);
+              setUserRole(result.role);
+            },
+          },
+        ]);
+      } else {
+        Alert.alert("Error de login", result.message || "Credenciales inválidas");
+      }
+    } catch (error) {
+      console.error("Error inesperado en login", error);
+      Alert.alert(
+        "Error",
+        "Ocurrió un error inesperado al intentar iniciar sesión"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -93,22 +102,22 @@ export default function LoginScreen({ navigation, setUserToken  }) {
           <TouchableOpacity
             style={[
               styles.roleTab,
-              userType === "Paciente" && { backgroundColor: theme.primary },
+              userType === "paciente" && { backgroundColor: theme.primary },
             ]}
             onPress={() => {
-              setUserType("Paciente");
+              setUserType("paciente");
               clearInputs();
             }}
           >
             <FontAwesome5
               name="user-injured"
               size={20}
-              color={userType === "Paciente" ? theme.background : theme.text}
+              color={userType === "paciente" ? theme.background : theme.text}
             />
             <Text
               style={[
                 styles.roleTabText,
-                { color: userType === "Paciente" ? theme.background : theme.text },
+                { color: userType === "paciente" ? theme.background : theme.text },
               ]}
             >
               Paciente
@@ -118,22 +127,22 @@ export default function LoginScreen({ navigation, setUserToken  }) {
           <TouchableOpacity
             style={[
               styles.roleTab,
-              userType === "Doctor" && { backgroundColor: theme.primary },
+              userType === "doctor" && { backgroundColor: theme.primary },
             ]}
             onPress={() => {
-              setUserType("Doctor");
+              setUserType("doctor");
               clearInputs();
             }}
           >
             <FontAwesome5
               name="user-md"
               size={20}
-              color={userType === "Doctor" ? theme.background : theme.text}
+              color={userType === "doctor" ? theme.background : theme.text}
             />
             <Text
               style={[
                 styles.roleTabText,
-                { color: userType === "Doctor" ? theme.background : theme.text },
+                { color: userType === "doctor" ? theme.background : theme.text },
               ]}
             >
               Doctor
@@ -143,22 +152,22 @@ export default function LoginScreen({ navigation, setUserToken  }) {
           <TouchableOpacity
             style={[
               styles.roleTab,
-              userType === "Recepcionista" && { backgroundColor: theme.primary },
+              userType === "recepcionista" && { backgroundColor: theme.primary },
             ]}
             onPress={() => {
-              setUserType("Recepcionista");
+              setUserType("recepcionista");
               clearInputs();
             }}
           >
             <FontAwesome5
               name="user-tie"
               size={20}
-              color={userType === "Recepcionista" ? theme.background : theme.text}
+              color={userType === "recepcionista" ? theme.background : theme.text}
             />
             <Text
               style={[
                 styles.roleTabText,
-                { color: userType === "Recepcionista" ? theme.background : theme.text },
+                { color: userType === "recepcionista" ? theme.background : theme.text },
               ]}
             >
               Recep.

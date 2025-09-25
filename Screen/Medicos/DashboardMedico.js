@@ -7,6 +7,8 @@ import { useNavigation } from "@react-navigation/native";
 import { logout } from "../../Src/Service/AuthService";
 
 export default function DashboardMedico({ setUserToken }) {
+    console.log("DashboardScreen (Medico) se está renderizando."); 
+
     const { theme } = useContext(ThemeContext);
     const navigation = useNavigation();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -23,8 +25,8 @@ export default function DashboardMedico({ setUserToken }) {
                 "¡Éxito!",
                 "Has cerrado sesión correctamente.",
                 [
-                    { 
-                        text: "Aceptar", 
+                    {
+                        text: "Aceptar",
                         onPress: () => {
                             setUserToken(null);
                         }

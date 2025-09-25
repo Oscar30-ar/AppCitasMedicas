@@ -3,14 +3,13 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
 import Pacientes_Stack from "./Stack/PacientesStack";
-import confi_paciente from "../../Screen/Pacientes/configuracion_Paciente";
 import { useContext } from "react";
 import { ThemeContext } from "../../components/ThemeContext";
-import PerfilScreen from "../../Screen/Pacientes/perfilScreen";
-
+import PerfilScreenRecepcionista from "../../Screen/Recepcionista/perfilScreenRecepcionistajs";
+import configuracion_Recepcionista from "../../Screen/Recepcionista/configuracion_Recepcionista";
 const Tab = createBottomTabNavigator();
 
-export default function NavegacionPrincipal({ setUserToken }) {
+export default function NavegacionRecepcionista({ setUserToken }) {
     const { theme } = useContext(ThemeContext);
     return (
 
@@ -45,7 +44,7 @@ export default function NavegacionPrincipal({ setUserToken }) {
 
             <Tab.Screen
                 name="Perfil"
-                children={() => <PerfilScreen setUserToken={setUserToken} />}
+                children={() => <PerfilScreenRecepcionista setUserToken={setUserToken} />}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
@@ -56,7 +55,7 @@ export default function NavegacionPrincipal({ setUserToken }) {
 
             <Tab.Screen
                 name="Configuracion"
-                children={() => <confi_paciente setUserToken={setUserToken} />}
+                children={() => <configuracion_Recepcionista setUserToken={setUserToken} />}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (

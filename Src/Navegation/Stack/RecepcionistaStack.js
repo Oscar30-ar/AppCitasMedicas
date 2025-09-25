@@ -1,32 +1,19 @@
-import { createStackNavigator } from "@react-navigation/stack";
-import DetallesRecepcionista from "../../../Screen/Recepcionista/detallesRecepcionista";
-import EditarRecepcionista from "../../../Screen/Recepcionista/editarRecepcionista";
-import ListarRecepcionista from "../../../Screen/Recepcionista/listarRecepcionista";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import CrearCitasScreen from "../../../Screen/Pacientes/NuevaCita";
+import HistorialMedicoScreen from "../../../Screen/Pacientes/HistorialMedico";
+import DashboardRecepcionista from "../../../Screen/Recepcionista/DashboardRecepcionista";
 
+const Stack = createNativeStackNavigator();
 
-
-const Stack = createStackNavigator();
-
-export default function RecepcionistaStack(){
+export default function Recepcionista_Stack({ setUserToken }){ 
     return(
         <Stack.Navigator>
             <Stack.Screen
-                name="DetallesRecepcionista"
-                component={DetallesRecepcionista}
-                options={{title: "Recepcionista"}}
+                name="DashboardRecepcionista"
+                children={(props) => <DashboardRecepcionista {...props} setUserToken={setUserToken} />}
+                options={{title: "Pacientes"}}
             />
 
-            <Stack.Screen
-                name="EditarRecepcionista"
-                component={EditarRecepcionista}
-                options={{title: "Recepcionista"}}
-            />
-
-            <Stack.Screen
-                name="ListarRecepcionista"
-                component={ListarRecepcionista}
-                options={{title: "Recepcionista"}}
-            />
         </Stack.Navigator>
     )
 }
