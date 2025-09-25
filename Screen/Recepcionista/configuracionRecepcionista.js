@@ -22,7 +22,7 @@ const settingsOptions = [
   },
 ];
 
-export default function configuracion_Recepcionista() {
+export default function ConfiguracionRecepcionista() {
   const { theme } = useContext(ThemeContext);
 
   const styles = StyleSheet.create({

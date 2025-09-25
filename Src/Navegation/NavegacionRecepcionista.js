@@ -2,37 +2,36 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Feather from '@expo/vector-icons/Feather';
-import Pacientes_Stack from "./Stack/PacientesStack";
 import { useContext } from "react";
 import { ThemeContext } from "../../components/ThemeContext";
-import PerfilScreenRecepcionista from "../../Screen/Recepcionista/perfilScreenRecepcionistajs";
-import configuracion_Recepcionista from "../../Screen/Recepcionista/configuracion_Recepcionista";
+import Recepcionista_Stack from "./Stack/RecepcionistaStack";
+import ConfiguracionRecepcionista from "../../Screen/Recepcionista/configuracionRecepcionista";
+import PerfilRecepcionista from "../../Screen/Recepcionista/PerfilRecepcionista";
+
 const Tab = createBottomTabNavigator();
 
 export default function NavegacionRecepcionista({ setUserToken }) {
     const { theme } = useContext(ThemeContext);
     return (
-
         <Tab.Navigator
             screenOptions={{
                 tabBarStyle: {
-                    backgroundColor: "#090632ff",
+                    backgroundColor: theme.tabBackground, 
                     borderTopWidth: 1,
-                    borderTopColor: "#ffffffff",
+                    borderTopColor: theme.border, 
                     height: 60,
                 },
-                tabBarActiveTintColor: "white",
-                tabBarInactiveTintColor: "#eaeaeaff",
+                tabBarActiveTintColor: theme.primary, 
+                tabBarInactiveTintColor: theme.subtitle,
                 tabBarLabelStyle: {
                     fontSize: 12,
                     fontWeight: "600",
                 },
             }}
         >
-
             <Tab.Screen
                 name="Inicio"
-                children={() => <Pacientes_Stack setUserToken={setUserToken} />}
+                children={() => <Recepcionista_Stack setUserToken={setUserToken} />}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
@@ -44,7 +43,7 @@ export default function NavegacionRecepcionista({ setUserToken }) {
 
             <Tab.Screen
                 name="Perfil"
-                children={() => <PerfilScreenRecepcionista setUserToken={setUserToken} />}
+                children={() => <PerfilRecepcionista setUserToken={setUserToken} />}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
@@ -55,7 +54,7 @@ export default function NavegacionRecepcionista({ setUserToken }) {
 
             <Tab.Screen
                 name="Configuracion"
-                children={() => <configuracion_Recepcionista setUserToken={setUserToken} />}
+                children={() => <ConfiguracionRecepcionista setUserToken={setUserToken} />}
                 options={{
                     headerShown: false,
                     tabBarIcon: ({ color, size }) => (
@@ -63,7 +62,6 @@ export default function NavegacionRecepcionista({ setUserToken }) {
                     )
                 }}
             />
-
         </Tab.Navigator>
-    )
+    );
 }

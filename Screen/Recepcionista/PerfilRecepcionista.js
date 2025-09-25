@@ -7,7 +7,7 @@ import ThemeSwitcher from "../../components/ThemeSwitcher";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiConexion from "../../Src/Service/Conexion";
 
-export default function PerfilScreenRecepcionista({ navigation }) {
+export default function PerfilRecepcionista({ navigation }) {
   const { theme } = useContext(ThemeContext);
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);

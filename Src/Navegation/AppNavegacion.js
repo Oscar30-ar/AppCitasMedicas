@@ -7,7 +7,6 @@ import { AppState, ActivityIndicator, View, Text, StyleSheet } from 'react-nativ
 import AuthNavegacion from "./AuthNavegacion";
 import NavegacionMedico from './NavegacionMedico';
 import NavegacionPaciente from './NavegacionPaciente';
-import RecepcionistaStack from './Stack/RecepcionistaStack';
 import NavegacionRecepcionista from './NavegacionRecepcionista';
 
 export default function AppNavegacion() {

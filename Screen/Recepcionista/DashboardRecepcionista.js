@@ -62,7 +62,7 @@ export default function DashboardRecepcionista({ setUserToken }) {
 
             {/* Bienvenida */}
             <View style={[styles.welcomeCard, { backgroundColor: theme.cardBackground }]}>
-                <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenido, Dr. Oscar</Text>
+                <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenido, Recepcionista</Text>
                 <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
                     ¿Necesitas programar una nueva cita? Estamos aquí para ayudarte.
                 </Text>
