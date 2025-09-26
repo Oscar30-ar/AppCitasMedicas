@@ -3,7 +3,7 @@ import apiConexion from "./Conexion";
 
 export const loginUser = async (email, password, role) => {
   try {
-    const response = await fetch("http://10.2.235.58:8000/api/login", {
+    const response = await fetch("http://192.168.101.73:8000/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ correo: email, clave: password, role }), 

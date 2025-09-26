@@ -1,4 +1,6 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
@@ -7,7 +9,37 @@ import { useNavigation } from "@react-navigation/native";
 import { logout } from "../../Src/Service/AuthService";
 
 export default function DashboardMedico({ setUserToken }) {
-    console.log("DashboardScreen (Medico) se está renderizando."); 
+    console.log("DashboardScreen (Medico) se está renderizando.");
+    const [doctorName, setDoctorName] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = await AsyncStorage.getItem("userToken");
+                if (token) {
+                    const response = await axios.get("http://10.2.235.58:8000/api/me", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+
+                    console.log("Respuesta de la API /api/me:", response.data);
+
+                    if (response.data && response.data.user) {
+                        const { nombre, apellido } = response.data.user;
+                        setDoctorName(`Dr. ${nombre} ${apellido}`);
+                    }
+                }
+            } catch (error) {
+                console.error("Error al obtener los datos del médico:", error);
+                setDoctorName("Doctor Desconocido");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
 
     const { theme } = useContext(ThemeContext);
     const navigation = useNavigation();
@@ -62,7 +94,9 @@ export default function DashboardMedico({ setUserToken }) {
 
             {/* Bienvenida */}
             <View style={[styles.welcomeCard, { backgroundColor: theme.cardBackground }]}>
-                <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenido, Dr. Oscar</Text>
+                <Text style={[styles.welcomeText, { color: theme.text }]}>
+                    {loading ? "Cargando..." : `Bienvenido, ${doctorName}`}
+                </Text>
                 <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
                     ¿Necesitas programar una nueva cita? Estamos aquí para ayudarte.
                 </Text>

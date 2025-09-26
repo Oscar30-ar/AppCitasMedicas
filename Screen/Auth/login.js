@@ -47,7 +47,7 @@ export default function LoginScreen({ navigation, setUserToken, setUserRole }) {
             text: "Ok",
             onPress: () => {
               setUserToken(result.token);
-              setUserRole(result.role);
+              setUserRole(result.role)
             },
           },
         ]);
@@ -186,6 +186,7 @@ export default function LoginScreen({ navigation, setUserToken, setUserRole }) {
           loading={loading}
           navigation={navigation}
         />
+        
       </ScrollView>
 
       {/* Botón para cambiar tema */}

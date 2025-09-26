@@ -85,7 +85,7 @@ const UserForm = ({
         )}
       </TouchableOpacity>
 
-      {userType === "Paciente" && (
+      {userType === "paciente" && (
         <TouchableOpacity
           style={[styles.registerBtn, { borderColor: theme.primary }]}
           onPress={() => navigation.navigate("Registro", { userType })}

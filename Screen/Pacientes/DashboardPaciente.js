@@ -1,17 +1,48 @@
-import React, { useContext, useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert } from "react-native";
+import React, { useContext, useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert, ActivityIndicator } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { useNavigation } from "@react-navigation/native";
 import { logout } from "../../Src/Service/AuthService";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 export default function DashboardScreen({ setUserToken }) {
-    console.log("DashboardScreen (Paciente) se está renderizando.");
-
     const { theme } = useContext(ThemeContext);
     const navigation = useNavigation();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [userName, setUserName] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = await AsyncStorage.getItem("userToken");
+                if (token) {
+                    const response = await axios.get("http://192.168.101.73:8000/api/me", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+
+                    console.log("Respuesta de la API /api/me:", response.data);
+
+                    // Extraer bien los datos
+                    if (response.data && response.data.user) {
+                        const { nombre, apellido } = response.data.user;
+                        setUserName(`${nombre} ${apellido}`);
+                    }
+                }
+            } catch (error) {
+                console.error("Error al obtener los datos del usuario:", error);
+                setUserName("Usuario Desconocido");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, []);
+
 
     const handleLogoutConfirmation = () => {
         setShowLogoutModal(true);
@@ -43,6 +74,15 @@ export default function DashboardScreen({ setUserToken }) {
         setShowLogoutModal(false);
     };
 
+    if (loading) {
+        return (
+            <View style={[styles.container, styles.centerContent, { backgroundColor: theme.background }]}>
+                <ActivityIndicator size="large" color={theme.text} />
+                <Text style={[styles.loadingText, { color: theme.text }]}>Cargando datos del usuario...</Text>
+            </View>
+        );
+    }
+
     return (
         <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
             {/* Header */}
@@ -62,7 +102,10 @@ export default function DashboardScreen({ setUserToken }) {
 
             {/* Bienvenida */}
             <View style={[styles.welcomeCard, { backgroundColor: theme.cardBackground }]}>
-                <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenido, Juan Pérez</Text>
+                    <Text style={[styles.welcomeText, { color: theme.text }]}>
+                        Bienvenido, {loading ? "Cargando..." : userName}
+                    </Text>
+
                 <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
                     ¿Necesitas programar una nueva cita? Estamos aquí para ayudarte.
                 </Text>
@@ -258,5 +301,16 @@ const styles = StyleSheet.create({
     modalConfirmText: {
         color: 'white',
         fontWeight: 'bold',
+    },
+    centerContent: {
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loadingText: {
+        marginTop: 10,
+    },
+    errorText: {
+        fontSize: 16,
+        textAlign: "center",
     },
 });
