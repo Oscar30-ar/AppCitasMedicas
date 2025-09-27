@@ -7,12 +7,18 @@ import DashboardRecepcionista from "../../Screen/Recepcionista/DashboardRecepcio
 
 const Stack = createNativeStackNavigator();
 
-export default function AuthNavegacion(){
+export default function AuthNavegacion({ setUserToken, setUserRole }){
     return(
         <Stack.Navigator>
             <Stack.Screen
                 name="Login"
-                component={Login}
+                children={(props) => (
+                    <Login 
+                        {...props} 
+                        setUserToken={setUserToken} 
+                        setUserRole={setUserRole}  
+                    />
+                )}
                 options={{title:"Iniciar Sesión"}}
             />
             <Stack.Screen
@@ -38,4 +44,3 @@ export default function AuthNavegacion(){
         </Stack.Navigator>
     )
 }
-

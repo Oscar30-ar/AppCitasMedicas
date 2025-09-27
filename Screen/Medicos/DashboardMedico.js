@@ -129,7 +129,7 @@ export default function DashboardMedico({ setUserToken }) {
 
             {/* Bienvenida */}
             <View style={[styles.welcomeCard, { backgroundColor: theme.cardBackground }]}>
-                <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenid@, {usuario?.nombre} {usuario?.apellido}</Text>
+                <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenid@, Dr {usuario?.nombre} {usuario?.apellido}</Text>
                 <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
                     ¿Necesitas programar una nueva cita? Estamos aquí para ayudarte.
                 </Text>

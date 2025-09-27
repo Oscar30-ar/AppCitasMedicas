@@ -7,6 +7,8 @@ import { useNavigation } from "@react-navigation/native";
 import { logout } from "../../Src/Service/AuthService";
 import apiConexion from "../../Src/Service/Conexion";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ProximasCitas } from "../../Src/Service/PacienteService";
+import { RefreshControl } from "react-native";
 
 
 export default function DashboardScreen({ setUserToken }) {
@@ -17,56 +19,80 @@ export default function DashboardScreen({ setUserToken }) {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [usuario, setUsuario] = useState(null);
     const [cargando, setCargando] = useState(true);
+    const [citas, setCitas] = useState([]);
+    const [loadingCitas, setLoadingCitas] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const cargarCitas = async () => {
+        try {
+            setLoadingCitas(true);
+            const citasResult = await ProximasCitas();
+
+            if (citasResult.success && Array.isArray(citasResult.data)) {
+                setCitas(citasResult.data);
+            } else {
+                Alert.alert("Error de Citas", citasResult.message || "No se pudieron cargar las próximas citas.");
+            }
+        } catch (error) {
+            console.error("Error al cargar las próximas citas:", error);
+            Alert.alert("Error", "Ocurrió un error inesperado al cargar las próximas citas.");
+        } finally {
+            setLoadingCitas(false);
+            setRefreshing(false);
+        }
+    };
 
     useEffect(() => {
-  const CargarPerfil = async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      const role = await AsyncStorage.getItem("rolUser"); 
+        const CargarPerfil = async () => {
+            try {
+                const token = await AsyncStorage.getItem("userToken");
+                const role = await AsyncStorage.getItem("rolUser");
 
-      if (!token || !role) {
-        Alert.alert("No se encontró sesión activa, redirigiendo al login");
-        await AsyncStorage.multiRemove(["userToken", "rolUser"]); 
-        setUserToken(null);
-        return;
-      }
+                if (!token || !role) {
+                    Alert.alert("No se encontró sesión activa, redirigiendo al login");
+                    await AsyncStorage.multiRemove(["userToken", "rolUser"]);
+                    setUserToken(null);
+                    return;
+                }
 
-      let url = "";
-      if (role === "paciente") url = "/me/paciente";
-      if (role === "doctor") url = "/me/doctor";
-      if (role === "recepcionista") url = "/me/recepcionista";
+                let url = "";
+                if (role === "paciente") url = "/me/paciente";
+                if (role === "doctor") url = "/me/doctor";
+                if (role === "recepcionista") url = "/me/recepcionista";
 
-      const response = await apiConexion.get(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+                const response = await apiConexion.get(url, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
-      console.log("Perfil cargado:", response.data);
-      setUsuario(response.data);
-    } catch (error) {
-      console.error("Error al cargar el perfil:", error);
+                console.log("Perfil cargado:", response.data);
+                setUsuario(response.data);
 
-      Alert.alert(
-        "Error",
-        "Ocurrió un error al cargar el perfil. Redirigiendo al login.",
-        [
-          {
-            text: "OK",
-            onPress: async () => {
-              await AsyncStorage.multiRemove(["userToken", "rolUser"]);
-              setUserToken(null);
-            },
-          },
-        ]
-      );
-    } finally {
-      setCargando(false);
-    }
-  };
+                await cargarCitas();
+            } catch (error) {
+                console.error("Error al cargar el perfil:", error);
 
-  CargarPerfil();
-}, []);
+                Alert.alert(
+                    "Error",
+                    "Ocurrió un error al cargar el perfil. Redirigiendo al login.",
+                    [
+                        {
+                            text: "OK",
+                            onPress: async () => {
+                                await AsyncStorage.multiRemove(["userToken", "rolUser"]);
+                                setUserToken(null);
+                            },
+                        },
+                    ]
+                );
+            } finally {
+                setCargando(false);
+            }
+        };
+
+        CargarPerfil();
+    }, []);
 
     if (cargando) {
         return (
@@ -107,7 +133,20 @@ export default function DashboardScreen({ setUserToken }) {
     };
 
     return (
-        <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
+        <ScrollView
+            contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={() => {
+                        setRefreshing(true);
+                        cargarCitas();
+                    }}
+                    colors={[theme.primary]}
+                    tintColor={theme.primary}
+                />
+            }
+        >
 
             {/* Header con logo centrado */}
             <View style={styles.header}>
@@ -120,7 +159,6 @@ export default function DashboardScreen({ setUserToken }) {
                 </View>
 
                 <View style={styles.headerIcons}>
-                    <ThemeSwitcher />
                     <TouchableOpacity onPress={handleLogoutConfirmation} style={styles.logoutBtn}>
                         <Ionicons name="log-out-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
@@ -131,51 +169,46 @@ export default function DashboardScreen({ setUserToken }) {
             <View style={[styles.welcomeCard, { backgroundColor: theme.cardBackground }]}>
                 <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenid@, {usuario?.nombre} {usuario?.apellido}</Text>
                 <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
-                    ¿Necesitas programar una nueva cita? Estamos aquí para ayudarte.
+                    Revisa tus próximas citas y gestiona tu historial médico.
                 </Text>
             </View>
 
             {/* Próximas citas */}
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Próximas Citas</Text>
             <View style={styles.appointmentsContainer}>
-                {/* Cita 1 */}
-                <View style={[styles.appointmentCard, { backgroundColor: theme.cardBackground }]}>
-                    <View style={styles.appointmentInfo}>
-                        <Text style={[styles.doctorName, { color: theme.text }]}>Dr. Ana García</Text>
-                        <Text style={[styles.specialty, { color: theme.subtitle }]}>Cardiología</Text>
-                        <View style={styles.appointmentDetails}>
-                            <Ionicons name="calendar-outline" size={16} color={theme.subtitle} />
-                            <Text style={[styles.infoText, { color: theme.subtitle }]}>2024-03-15</Text>
-                            <Ionicons name="time-outline" size={16} color={theme.subtitle} style={{ marginLeft: 15 }} />
-                            <Text style={[styles.infoText, { color: theme.subtitle }]}>10:00 AM</Text>
-                            <FontAwesome5 name="map-marker-alt" size={16} color={theme.subtitle} style={{ marginLeft: 15 }} />
-                            <Text style={[styles.infoText, { color: theme.subtitle }]}>Consulta 201</Text>
+                {loadingCitas ? (
+                    <ActivityIndicator size="large" color={theme.primary} style={{ marginVertical: 20 }} />
+                ) : citas.length === 0 ? (
+                    <Text style={{ color: theme.subtitle, textAlign: "center", padding: 15 }}>
+                        No tienes citas confirmadas próximas.
+                    </Text>
+                ) : (
+                    citas.map((cita) => (
+                        <View key={cita.id} style={[styles.appointmentCard, { backgroundColor: theme.cardBackground }]}>
+                            <View style={styles.appointmentInfo}>
+                                <Text style={[styles.doctorName, { color: theme.text }]}>
+                                    Dr. {cita.doctor?.nombre} {cita.doctor?.apellido}
+                                </Text>
+                                <Text style={[styles.specialty, { color: theme.subtitle }]}>
+                                    {cita.especialidad || "Especialidad no definida"}
+                                </Text>
+                                <View style={styles.appointmentDetails}>
+                                    <Ionicons name="calendar-outline" size={16} color={theme.subtitle} />
+                                    <Text style={[styles.infoText, { color: theme.subtitle }]}>{cita.fecha}</Text>
+                                    <Ionicons name="time-outline" size={16} color={theme.subtitle} style={{ marginLeft: 15 }} />
+                                    <Text style={[styles.infoText, { color: theme.subtitle }]}>{cita.hora}</Text>
+                                    <FontAwesome5 name="map-marker-alt" size={16} color={theme.subtitle} style={{ marginLeft: 15 }} />
+                                    <Text style={[styles.infoText, { color: theme.subtitle }]}>{cita.consultorio}</Text>
+                                </View>
+                            </View>
+                            <TouchableOpacity style={[styles.viewDetailsBtn, { backgroundColor: theme.primary }]}>
+                                <Text style={styles.viewDetailsText}>Ver Detalles</Text>
+                            </TouchableOpacity>
                         </View>
-                    </View>
-                    <TouchableOpacity style={[styles.viewDetailsBtn, { backgroundColor: theme.primary }]}>
-                        <Text style={styles.viewDetailsText}>Ver Detalles</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Cita 2 */}
-                <View style={[styles.appointmentCard, { backgroundColor: theme.cardBackground }]}>
-                    <View style={styles.appointmentInfo}>
-                        <Text style={[styles.doctorName, { color: theme.text }]}>Dr. Carlos Mendoza</Text>
-                        <Text style={[styles.specialty, { color: theme.subtitle }]}>Medicina General</Text>
-                        <View style={styles.appointmentDetails}>
-                            <Ionicons name="calendar-outline" size={16} color={theme.subtitle} />
-                            <Text style={[styles.infoText, { color: theme.subtitle }]}>2024-03-20</Text>
-                            <Ionicons name="time-outline" size={16} color={theme.subtitle} style={{ marginLeft: 15 }} />
-                            <Text style={[styles.infoText, { color: theme.subtitle }]}>2:30 PM</Text>
-                            <FontAwesome5 name="map-marker-alt" size={16} color={theme.subtitle} style={{ marginLeft: 15 }} />
-                            <Text style={[styles.infoText, { color: theme.subtitle }]}>Consulta 105</Text>
-                        </View>
-                    </View>
-                    <TouchableOpacity style={[styles.viewDetailsBtn, { backgroundColor: theme.primary }]}>
-                        <Text style={styles.viewDetailsText}>Ver Detalles</Text>
-                    </TouchableOpacity>
-                </View>
+                    ))
+                )}
             </View>
+
 
             {/* Acciones rápidas */}
             <View style={styles.actionsGrid}>
@@ -184,10 +217,10 @@ export default function DashboardScreen({ setUserToken }) {
                     <Text style={[styles.actionCardTitle, { color: theme.text }]}>Historial Médico</Text>
                     <Text style={[styles.actionCardSubtitle, { color: theme.subtitle }]}>Ver expediente médico</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.cardBackground }]}>
+                <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.cardBackground }]} onPress={() => navigation.navigate("Contacto")}>
                     <Ionicons name="call" size={28} color={theme.text} />
                     <Text style={[styles.actionCardTitle, { color: theme.text }]}>Contacto</Text>
-                    <Text style={[styles.actionCardSubtitle, { color: theme.subtitle }]}>Llamar a la clínica</Text>
+                    <Text style={[styles.actionCardSubtitle, { color: theme.subtitle }]}>Información de contacto</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.cardBackground }]} onPress={() => navigation.navigate("Mapa")}>
                     <Ionicons name="map-outline" size={28} color={theme.text} />
@@ -230,13 +263,13 @@ export default function DashboardScreen({ setUserToken }) {
 const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
-        padding: 15,
+        padding: 20,
     },
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 20,
+        marginBottom: 30,
         width: "100%",
     },
     titleContainer: {
@@ -284,7 +317,7 @@ const styles = StyleSheet.create({
     actionCardTitle: { fontSize: 12, fontWeight: "bold", marginTop: 5 },
     actionCardSubtitle: { fontSize: 10, textAlign: "center" },
 
-    // Modal
+    // Modal cerrar sesión
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',

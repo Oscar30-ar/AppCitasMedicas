@@ -65,7 +65,7 @@ export default function AppNavegacion() {
             case "recepcionista":
                 return <NavegacionRecepcionista setUserToken={setUserToken} />;
             default:
-                return <AuthNavegacion setUserToken={setUserToken} />;
+                return <AuthNavegacion setUserToken={setUserToken} setUserRole={setUserRole} />;
         }
     };
 

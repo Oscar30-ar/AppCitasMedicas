@@ -98,14 +98,10 @@ export default function PerfilScreen() {
       {/* Botón editar */}
       <BottonComponent
         title="Editar Perfil"
-        onPress={() => navigation.navigate("EditarPaciente")}
+        onPress={() => navigation.navigate("Inicio", { screen: "EditarPaciente" })} 
         style={[styles.editButton, { backgroundColor: theme.primary }]}
       />
 
-      {/* Switcher de tema */}
-      <View style={styles.themeSwitcherContainer}>
-        <ThemeSwitcher />
-      </View>
     </ScrollView>
   );
 }

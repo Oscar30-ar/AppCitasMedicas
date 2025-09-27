@@ -15,7 +15,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
-import { registrarPaciente } from "../../Src/Service/AuthService";
+import { registrarPaciente } from "../../Src/Service/PacienteService";
 
 export default function RegisterPatientScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
