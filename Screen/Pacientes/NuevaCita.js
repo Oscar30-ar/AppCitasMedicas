@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
+import { FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
@@ -148,10 +149,15 @@ export default function NuevaCita() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.title, { color: theme.text }]}>Agendar Nueva Cita</Text>
-      <Text style={[styles.subtitle, { color: theme.subtitle }]}>
-        Sigue los pasos para reservar tu cita médica.
-      </Text>
+      <View style={styles.header}>
+        <View style={[styles.logoContainer, { backgroundColor: theme.cardBackground }]}>
+          <FontAwesome5 name="heartbeat" size={30} color={theme.primary} />
+        </View>
+        <Text style={[styles.title, { color: theme.text }]}>Agendar Nueva Cita</Text>
+        <Text style={[styles.subtitle, { color: theme.subtitle }]}>
+          Sigue los pasos para reservar tu cita médica.
+        </Text>
+      </View>
 
       {/* Selector de Especialidad */}
       <View style={styles.sectionContainer}>
@@ -273,6 +279,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  logoContainer: {
+    borderRadius: 25,
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   title: {
     fontSize: 24,

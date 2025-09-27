@@ -1,49 +1,80 @@
 import React, { useContext, useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert, Image, ActivityIndicator } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { useNavigation } from "@react-navigation/native";
 import { logout } from "../../Src/Service/AuthService";
+import apiConexion from "../../Src/Service/Conexion";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 export default function DashboardMedico({ setUserToken }) {
     console.log("DashboardScreen (Medico) se está renderizando.");
-    const [doctorName, setDoctorName] = useState("");
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                const token = await AsyncStorage.getItem("userToken");
-                if (token) {
-                    const response = await axios.get("http://10.2.235.58:8000/api/me", {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-
-                    console.log("Respuesta de la API /api/me:", response.data);
-
-                    if (response.data && response.data.user) {
-                        const { nombre, apellido } = response.data.user;
-                        setDoctorName(`Dr. ${nombre} ${apellido}`);
-                    }
-                }
-            } catch (error) {
-                console.error("Error al obtener los datos del médico:", error);
-                setDoctorName("Doctor Desconocido");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUserData();
-    }, []);
-
 
     const { theme } = useContext(ThemeContext);
     const navigation = useNavigation();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [usuario, setUsuario] = useState(null);
+    const [cargando, setCargando] = useState(true);
+
+    useEffect(() => {
+  const CargarPerfil = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const role = await AsyncStorage.getItem("rolUser"); 
+
+      if (!token || !role) {
+        Alert.alert("No se encontró sesión activa, redirigiendo al login");
+        await AsyncStorage.multiRemove(["userToken", "rolUser"]); 
+        setUserToken(null);
+        return;
+      }
+
+      let url = "";
+      if (role === "paciente") url = "/me/paciente";
+      if (role === "doctor") url = "/me/doctor";
+      if (role === "recepcionista") url = "/me/recepcionista";
+
+      const response = await apiConexion.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log("Perfil cargado:", response.data);
+      setUsuario(response.data);
+    } catch (error) {
+      console.error("Error al cargar el perfil:", error);
+
+      Alert.alert(
+        "Error",
+        "Ocurrió un error al cargar el perfil. Redirigiendo al login.",
+        [
+          {
+            text: "OK",
+            onPress: async () => {
+              await AsyncStorage.multiRemove(["userToken", "rolUser"]);
+              setUserToken(null);
+            },
+          },
+        ]
+      );
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  CargarPerfil();
+}, []);
+
+    if (cargando) {
+        return (
+            <View style={[styles.container, styles.centerContent, { backgroundColor: theme.background }]}>
+                <ActivityIndicator size="large" color={theme.primary} />
+            </View>
+        );
+    }
 
     const handleLogoutConfirmation = () => {
         setShowLogoutModal(true);
@@ -77,15 +108,19 @@ export default function DashboardMedico({ setUserToken }) {
 
     return (
         <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
-            {/* Header */}
+
+            {/* Header con logo centrado */}
             <View style={styles.header}>
                 <View style={styles.titleContainer}>
+                    <View style={[styles.logoContainer, { backgroundColor: theme.cardBackground }]}>
+                        <FontAwesome5 name="heartbeat" size={40} color={theme.primary} />
+                    </View>
                     <Text style={[styles.title, { color: theme.text }]}>Clínica los Andes</Text>
-                    <Text style={[styles.subtitle, { color: theme.subtitle }]}>Panel del Medico</Text>
+                    <Text style={[styles.subtitle, { color: theme.subtitle }]}>Panel del Médico</Text>
                 </View>
+
                 <View style={styles.headerIcons}>
                     <ThemeSwitcher />
-                    {/* Botón de logout */}
                     <TouchableOpacity onPress={handleLogoutConfirmation} style={styles.logoutBtn}>
                         <Ionicons name="log-out-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
@@ -94,19 +129,10 @@ export default function DashboardMedico({ setUserToken }) {
 
             {/* Bienvenida */}
             <View style={[styles.welcomeCard, { backgroundColor: theme.cardBackground }]}>
-                <Text style={[styles.welcomeText, { color: theme.text }]}>
-                    {loading ? "Cargando..." : `Bienvenido, ${doctorName}`}
-                </Text>
+                <Text style={[styles.welcomeText, { color: theme.text }]}>Bienvenid@, {usuario?.nombre} {usuario?.apellido}</Text>
                 <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
                     ¿Necesitas programar una nueva cita? Estamos aquí para ayudarte.
                 </Text>
-                <TouchableOpacity
-                    style={[styles.newAppointmentBtn, { backgroundColor: theme.primary }]}
-                    onPress={() => navigation.navigate("NuevaCita")}
-                >
-                    <Ionicons name="add-circle-outline" size={22} color="white" />
-                    <Text style={styles.newAppointmentText}>Nueva Cita</Text>
-                </TouchableOpacity>
             </View>
 
             {/* Próximas citas */}
@@ -163,14 +189,14 @@ export default function DashboardMedico({ setUserToken }) {
                     <Text style={[styles.actionCardTitle, { color: theme.text }]}>Contacto</Text>
                     <Text style={[styles.actionCardSubtitle, { color: theme.subtitle }]}>Llamar a la clínica</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.cardBackground }]}>
-                    <Ionicons name="person-circle-outline" size={28} color={theme.text} />
-                    <Text style={[styles.actionCardTitle, { color: theme.text }]}>Mi Perfil</Text>
-                    <Text style={[styles.actionCardSubtitle, { color: theme.subtitle }]}>Actualizar información</Text>
+                <TouchableOpacity style={[styles.actionCard, { backgroundColor: theme.cardBackground }]} onPress={() => navigation.navigate("Mapa")}>
+                    <Ionicons name="map-outline" size={28} color={theme.text} />
+                    <Text style={[styles.actionCardTitle, { color: theme.text }]}>Mapa</Text>
+                    <Text style={[styles.actionCardSubtitle, { color: theme.subtitle }]}>Ver ubicación</Text>
                 </TouchableOpacity>
             </View>
 
-            {/* Modal de confirmación personalizado */}
+            {/* Modal de confirmación de logout */}
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -204,24 +230,45 @@ export default function DashboardMedico({ setUserToken }) {
 const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
-        padding: 15
+        padding: 15,
     },
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 20
+        marginBottom: 20,
+        width: "100%",
     },
-    titleContainer: { flexDirection: "row", alignItems: "center" },
-    title: { fontSize: 22, fontWeight: "bold", marginRight: 10 },
+    titleContainer: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    logoContainer: {
+        borderRadius: 50,
+        width: 70,
+        height: 70,
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    logo: {
+        width: 65,
+        height: 65,
+        borderRadius: 32,
+    },
+    title: { fontSize: 22, fontWeight: "bold", marginBottom: 5 },
     subtitle: { fontSize: 16, fontWeight: "400" },
     headerIcons: { flexDirection: "row", alignItems: "center" },
     logoutBtn: { marginLeft: 15 },
     welcomeCard: { padding: 20, borderRadius: 12, marginBottom: 20 },
     welcomeText: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
     welcomeSubText: { fontSize: 14, marginBottom: 15 },
-    newAppointmentBtn: { flexDirection: "row", alignItems: "center", justifyContent: "center", padding: 12, borderRadius: 8 },
-    newAppointmentText: { color: "white", fontWeight: "bold", marginLeft: 8 },
     sectionTitle: { fontSize: 16, fontWeight: "bold", marginVertical: 15 },
     appointmentsContainer: { marginBottom: 20 },
     appointmentCard: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 15, borderRadius: 12, marginBottom: 10 },
@@ -237,7 +284,7 @@ const styles = StyleSheet.create({
     actionCardTitle: { fontSize: 12, fontWeight: "bold", marginTop: 5 },
     actionCardSubtitle: { fontSize: 10, textAlign: "center" },
 
-    // Estilos para el modal de cerrar sesion
+    // Modal
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',

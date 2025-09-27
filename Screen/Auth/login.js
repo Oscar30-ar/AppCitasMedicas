@@ -9,7 +9,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginScreen({ navigation, setUserToken, setUserRole }) {
   const { theme } = useContext(ThemeContext);
-  const [userType, setUserType] = useState("paciente", "medico", "recepcionista");
+  const [userType, setUserType] = useState("paciente");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,25 +29,30 @@ export default function LoginScreen({ navigation, setUserToken, setUserRole }) {
     setLoading(true);
 
     try {
-
       await AsyncStorage.removeItem("userToken");
       await AsyncStorage.removeItem("userRole");
       setUserToken(null);
-      setUserRole(null); 
+      setUserRole(null);
 
-      const result = await loginUser(email, password, userType);
+      const result = await loginUser(email, password, userType.toLowerCase());
       console.log("Resultado login:", result);
 
       if (result.success) {
-        await AsyncStorage.setItem("userToken", result.token);
-        await AsyncStorage.setItem("userRole", result.role);
+        setUserToken(result.token);
+        setUserRole(result.role);
 
         Alert.alert("Éxito", "Inicio de sesión exitoso", [
           {
             text: "Ok",
             onPress: () => {
-              setUserToken(result.token);
-              setUserRole(result.role)
+              // 🔹 Redirigir según rol
+              if (result.role === "paciente") {
+                navigation.replace("DashboardPaciente");
+              } else if (result.role === "doctor") {
+                navigation.replace("DashboardMedico");
+              } else if (result.role === "recepcionista") {
+                navigation.replace("DashboardRecepcionista");
+              }
             },
           },
         ]);
@@ -56,10 +61,7 @@ export default function LoginScreen({ navigation, setUserToken, setUserRole }) {
       }
     } catch (error) {
       console.error("Error inesperado en login", error);
-      Alert.alert(
-        "Error",
-        "Ocurrió un error inesperado al intentar iniciar sesión"
-      );
+      Alert.alert("Error", "Ocurrió un error inesperado");
     } finally {
       setLoading(false);
     }
@@ -186,7 +188,7 @@ export default function LoginScreen({ navigation, setUserToken, setUserRole }) {
           loading={loading}
           navigation={navigation}
         />
-        
+
       </ScrollView>
 
       {/* Botón para cambiar tema */}

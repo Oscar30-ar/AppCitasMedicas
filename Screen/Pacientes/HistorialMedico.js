@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView, FlatList } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome5 } from "@expo/vector-icons";
 
 // Datos de ejemplo para el historial médico
 const medicalHistoryData = [
@@ -59,7 +59,12 @@ const EventCard = ({ item }) => {
 export default function HistorialMedicoScreen() {
     return (
         <View style={styles.container}>
-            <Text style={styles.pageTitle}>Historial Médico</Text>
+            <View style={styles.header}>
+                <View style={styles.logoContainer}>
+                    <FontAwesome5 name="heartbeat" size={30} color="#3b82f6" />
+                </View>
+                <Text style={styles.pageTitle}>Historial Médico</Text>
+            </View>
             <FlatList
                 data={medicalHistoryData}
                 keyExtractor={(item) => item.id}
@@ -75,6 +80,24 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#0f172a", // Fondo oscuro
         padding: 20,
+    },
+    header: {
+        alignItems: "center",
+        marginBottom: 20,
+    },
+    logoContainer: {
+        borderRadius: 25,
+        width: 50,
+        height: 50,
+        justifyContent: "center",
+        alignItems: "center",
+        marginBottom: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        backgroundColor: "#1e293b",
     },
     pageTitle: {
         fontSize: 22,

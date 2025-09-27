@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import DashboardScreen from "../../../Screen/Pacientes/DashboardPaciente";
 import CrearCitasScreen from "../../../Screen/Pacientes/NuevaCita";
 import HistorialMedicoScreen from "../../../Screen/Pacientes/HistorialMedico";
+import MapaScreen from "../../../Screen/Pacientes/MapaScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -24,7 +25,13 @@ export default function Pacientes_Stack({ setUserToken }){
                 component={HistorialMedicoScreen}
                 options={{title: "Pacientes"}}
             />
-            
+
+            <Stack.Screen
+                name="Mapa"
+                component={MapaScreen}
+                options={{title: "Pacientes"}}
+            />
+
         </Stack.Navigator>
     )
 }

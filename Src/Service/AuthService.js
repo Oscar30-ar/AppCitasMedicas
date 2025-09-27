@@ -1,39 +1,60 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiConexion from "./Conexion";
 
-export const loginUser = async (email, password, role) => {
+export const loginUser = async (correo, clave, role) => {
   try {
-    const response = await fetch("http://192.168.101.73:8000/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ correo: email, clave: password, role }), 
-    });
+    const response = await apiConexion.post("/login", { correo, clave, role });
+    const token = response.data.token;
 
-    const data = await response.json();
+    console.log("Respuesta del servidor:", response.data);
+    console.log("Token recibido:", token);
 
-    if (response.ok) {
-      return { success: true, token: data.token, role: data.role, user: data.user };
+    if (token) {
+      await AsyncStorage.setItem("userToken", token);
+      await AsyncStorage.setItem("rolUser", role);
+      await AsyncStorage.setItem("userData", JSON.stringify(response.data.user));
+      return {
+        success: true,
+        token,
+        role: role,
+        user: response.data.user,
+      };
     } else {
-      return { success: false, message: data.error || "Login fallido" };
+      return {
+        success: false,
+        message: "No se recibió el token en la respuesta",
+      };
     }
   } catch (error) {
-    console.error("Error en loginUser:", error);
-    return { success: false, message: "Error de conexión" };
+    if (error.response) {
+      console.log("Error al iniciar sesión:", error.response.data);
+      return {
+        success: false,
+        message: error.response.data.message || "Error en las credenciales",
+      };
+    } else {
+      console.log("Error al iniciar sesión:", error.message);
+      return {
+        success: false,
+        message: "Error de conexión con el servidor",
+      };
+    }
   }
 };
 
 
-export const logout = async () => {
-    try {
-        await AsyncStorage.removeItem("userToken");
-        console.log("Sesión cerrada correctamente.");
 
-        return { success: true, message: "Sesión cerrada correctamente" };
-    } catch (error) {
-        console.error("Error inesperado en logout:", error.message);
-        return { success: false, message: "Ocurrió un error al intentar cerrar la sesión." };
-    }
+export const logout = async () => {
+  try {
+    await AsyncStorage.multiRemove(["userToken", "rolUser"]);
+    console.log("Sesión cerrada correctamente.");
+    return { success: true, message: "Sesión cerrada correctamente" };
+  } catch (error) {
+    console.error("Error inesperado en logout:", error.message);
+    return { success: false, message: "Ocurrió un error al intentar cerrar la sesión." };
+  }
 };
+
 
 export const registrarPaciente = async (userData) => {
     try {
