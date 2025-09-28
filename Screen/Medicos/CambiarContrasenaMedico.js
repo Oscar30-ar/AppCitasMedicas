@@ -5,7 +5,7 @@ import { ThemeContext } from "../../components/ThemeContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CambiarContraseña } from "../../Src/Service/PacienteService";
 
-export default function CambiarContrasenaScreen({ navigation }) {
+export default function CambiarContrasenaMedico({ navigation }) {
     const { theme } = useContext(ThemeContext);
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");

@@ -1,5 +1,3 @@
-// components/UserForm.js
-
 import React, { useState, useContext } from "react";
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,50 +17,47 @@ const UserForm = ({
   const [secureText, setSecureText] = useState(true);
 
   return (
-    <View
-      style={[styles.formContainer, { backgroundColor: theme.cardBackground }]}
-    >
+    <View style={[styles.formContainer, { backgroundColor: theme.cardBackground }]}>
       <Text style={[styles.formTitle, { color: theme.text }]}>
         Acceso para {userType}
       </Text>
 
-      <TextInput
-        style={[
-          styles.input,
-          { backgroundColor: theme.background, color: theme.text, borderColor: theme.border },
-        ]}
-        placeholder="Correo Electrónico"
-        placeholderTextColor={theme.subtitle}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoComplete="email"
-        value={email}
-        onChangeText={setEmail}
-      />
+      {/* Campo de correo */}
       <View style={[styles.inputContainer, { borderColor: theme.border }]}>
+        <Ionicons name="mail-outline" size={20} color={theme.subtitle} />
         <TextInput
-          style={[
-            styles.passwordInput,
-            { backgroundColor: theme.background, color: theme.text },
-          ]}
+          style={[styles.input, { color: theme.text }]}
+          placeholder="Correo Electrónico"
+          placeholderTextColor={theme.subtitle}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          value={email}
+          onChangeText={setEmail}
+        />
+      </View>
+
+      {/* Campo de contraseña */}
+      <View style={[styles.inputContainer, { borderColor: theme.border }]}>
+        <Ionicons name="lock-closed-outline" size={20} color={theme.subtitle} />
+        <TextInput
+          style={[styles.input, { color: theme.text }]}
           placeholder="Contraseña"
           placeholderTextColor={theme.subtitle}
           secureTextEntry={secureText}
           value={password}
           onChangeText={setPassword}
         />
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={() => setSecureText(!secureText)}
-        >
+        <TouchableOpacity onPress={() => setSecureText(!secureText)}>
           <Ionicons
-            name={secureText ? "eye-off" : "eye"}
+            name={secureText ? "eye-off-outline" : "eye-outline"}
             size={22}
             color={theme.subtitle}
           />
         </TouchableOpacity>
       </View>
 
+      {/* Olvidé mi contraseña */}
       <TouchableOpacity
         style={styles.forgotBtn}
         onPress={() => console.log("Forgot password pressed")}
@@ -72,6 +67,7 @@ const UserForm = ({
         </Text>
       </TouchableOpacity>
 
+      {/* Botón Iniciar Sesión */}
       <TouchableOpacity
         style={[styles.loginBtn, { backgroundColor: theme.primary }]}
         onPress={onLogin}
@@ -85,6 +81,7 @@ const UserForm = ({
         )}
       </TouchableOpacity>
 
+      {/* Botón Registrarse (solo pacientes) */}
       {userType === "paciente" && (
         <TouchableOpacity
           style={[styles.registerBtn, { borderColor: theme.primary }]}
@@ -99,6 +96,7 @@ const UserForm = ({
     </View>
   );
 };
+
 export default UserForm;
 
 const styles = StyleSheet.create({
@@ -118,32 +116,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
-  input: {
-    height: 50,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    borderWidth: 1,
-    marginBottom: 15,
-    fontSize: 16,
-  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    height: 50,
-    paddingHorizontal: 15,
-    borderRadius: 10,
     borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
     marginBottom: 15,
+    backgroundColor: "transparent",
   },
-  passwordInput: {
+  input: {
     flex: 1,
-    height: "100%",
+    marginLeft: 10,
     fontSize: 16,
-  },
-  iconContainer: {
-    padding: 5,
-    justifyContent: "center",
-    alignItems: "center",
   },
   forgotBtn: {
     marginBottom: 24,

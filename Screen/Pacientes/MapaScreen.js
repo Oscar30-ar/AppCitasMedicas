@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useContext } from "react";
 import { View, Text, StyleSheet, Linking, TouchableOpacity } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
+// 1. IMPORTAR ThemeContext
+import { ThemeContext } from "../../components/ThemeContext";
 
 // ⚠️ Reemplaza esta URL con el enlace real del mapa de tu clínica
 const MAPA_URL = "https://maps.app.goo.gl/BuJ9m1VDeXDCE43ZA";
@@ -20,21 +22,26 @@ const handleOpenLink = async (url) => {
 };
 
 export default function MapaScreen() {
+    // 2. USAR ThemeContext
+    const { theme } = useContext(ThemeContext);
+
     return (
-        <View style={styles.container}>
-            <View style={styles.logoContainer}>
-                <FontAwesome5 name="heartbeat" size={30} color="#3b82f6" />
+        // 3. APLICAR COLORES DEL TEMA
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+            <View style={[styles.logoContainer, { backgroundColor: theme.cardBackground }]}>
+                {/* El ícono puede usar theme.primary o theme.text */}
+                <FontAwesome5 name="heartbeat" size={30} color={theme.primary} />
             </View>
 
-            <Text style={styles.pageTitle}>Mapa de la Clínica</Text>
+            <Text style={[styles.pageTitle, { color: theme.text }]}>Mapa de la Clínica</Text>
 
-            <Text style={styles.placeholderText}>
+            <Text style={[styles.placeholderText, { color: theme.subtitle }]}>
                 Toca el siguiente enlace para ver la ubicación en tu navegador/app de mapas:
             </Text>
 
             {/* Componente TouchableOpacity para hacer el texto clickeable */}
             <TouchableOpacity
-                style={styles.linkContainer}
+                style={[styles.linkContainer, { backgroundColor: theme.primary }]} // Usamos primary para el fondo del botón/enlace
                 onPress={() => handleOpenLink(MAPA_URL)}
             >
                 {/* Texto del enlace */}
@@ -47,10 +54,12 @@ export default function MapaScreen() {
     );
 }
 
+// ----------------------------------------------------------------------------------
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#0f172a",
+        // Eliminado: backgroundColor fijo
         padding: 20,
         justifyContent: "center",
         alignItems: "center",
@@ -67,34 +76,35 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
-        backgroundColor: "#1e293b",
+        // Eliminado: backgroundColor fijo
     },
     pageTitle: {
         fontSize: 22,
         fontWeight: "bold",
-        color: "#f4f4f5",
+        // Eliminado: color fijo
         marginBottom: 20,
         textAlign: "center",
     },
     placeholderText: {
         fontSize: 16,
-        color: "#d1d5db",
+        // Eliminado: color fijo
         textAlign: "center",
         marginBottom: 30, // Espacio antes del enlace
     },
     // Estilos para el contenedor del enlace (opcional, para darle padding)
     linkContainer: {
-        padding: 10,
+        padding: 12, // Aumentado un poco el padding para mejor tacto
         borderRadius: 8,
-        backgroundColor: '#4f46e5', // Un color vibrante para que parezca botón/enlace
+        // Eliminado: backgroundColor fijo (se aplica con theme.primary en el componente)
     },
     // Estilos para el texto del enlace
     linkText: {
         fontSize: 18,
-        color: "#ffffff", // Color blanco o claro para el texto
+        color: "#ffffff", // Dejamos el texto en blanco para que contraste con theme.primary
         fontWeight: 'bold',
         textDecorationLine: 'underline', // Para que se vea como un enlace web
     },
+    // No se usa, pero lo mantengo por si acaso, sin colores fijos
     coverImage: {
         width: "100%",
         height: 200,

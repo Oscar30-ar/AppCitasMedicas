@@ -45,7 +45,7 @@ export default function LoginScreen({ navigation, setUserToken, setUserRole }) {
           {
             text: "Ok",
             onPress: () => {
-              // 🔹 Redirigir según rol
+              // Redirigir según rol
               if (result.role === "paciente") {
                 navigation.replace("DashboardPaciente");
               } else if (result.role === "doctor") {

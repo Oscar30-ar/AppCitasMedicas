@@ -1,228 +1,394 @@
 import React, { useContext, useState } from "react";
-import {View,Text,StyleSheet,ScrollView,TouchableOpacity,Modal,Alert,} from "react-native";
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    TouchableOpacity,
+    Modal,
+    Alert,
+    ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
-import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { logout } from "../../Src/Service/AuthService";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { eliminarCuentaPaciente } from "../../Src/Service/PacienteService";
 
-const settingsOptions = [
-  {
-    icon: <Ionicons name="document-text-outline" size={26} color="#3b82f6" />,
-    title: "Términos de Uso",
-    subtitle: "Leer los términos y condiciones",
-    action: "terms",
-  },
-  {
-    icon: <Ionicons name="key-outline" size={26} color="#3b82f6" />,
-    title: "Cambiar Contraseña",
-    subtitle: "Actualizar tu contraseña",
-    action: "changePassword",
-  },
-  {
-    icon: <Ionicons name="log-out-outline" size={26} color="#3b82f6" />,
-    title: "Cerrar Sesión",
-    subtitle: "Salir de tu cuenta",
-    action: "logout",
-  },
-];
 
 export default function ConfiguracionPaciente({ setUserToken }) {
-  const { theme } = useContext(ThemeContext);
-  const navigation = useNavigation();
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const { theme, toggleTheme } = useContext(ThemeContext);
+    const navigation = useNavigation();
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    
+    const isDark = theme.name === "dark";
 
-  const handleOptionPress = (action) => {
-    if (action === "terms") {
-      navigation.navigate("TerminosUso");
-    } else if (action === "changePassword") {
-      navigation.navigate("CambiarContrasena");
-    } else if (action === "logout") {
-      setShowLogoutModal(true);
-    }
-  };
+    const handleDeleteAccount = async () => {
+        setShowDeleteModal(false);
+        setIsDeleting(true);
 
-  const handleConfirmLogout = async () => {
-    setShowLogoutModal(false);
-    try {
-      await logout();
-      Alert.alert(
-        "¡Éxito!",
-        "Has cerrado sesión correctamente.",
-        [{ text: "Aceptar", onPress: () => setUserToken(null) }],
-        { cancelable: false }
-      );
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      Alert.alert("Error", "No se pudo cerrar la sesión. Inténtalo de nuevo.");
-    }
-  };
+        try {
+            const result = await eliminarCuentaPaciente(); 
 
-  const handleCancelLogout = () => {
-    setShowLogoutModal(false);
-  };
+            if (result.success) {
+                // El servicio debe encargarse de limpiar AsyncStorage
+                Alert.alert(
+                    "¡Éxito!", 
+                    result.message, 
+                    [{ text: "Aceptar", onPress: () => setUserToken(null) }]
+                );
+            } else {
+                Alert.alert("Error", result.message || "No se pudo eliminar la cuenta.");
+            }
 
-  return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.background }]} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.text }]}>Configuración</Text>
-      </View>
+        } catch (error) {
+            console.error("Error al eliminar la cuenta:", error);
+            Alert.alert("Error", "Ocurrió un error inesperado al eliminar la cuenta.");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
-      {/* Opciones */}
-      <View>
-        {settingsOptions.map((option, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.settingCard, { backgroundColor: theme.cardBackground }]}
-            onPress={() => handleOptionPress(option.action)}
-          >
-            <View style={styles.iconContainer}>{option.icon}</View>
-            <View style={styles.textContainer}>
-              <Text style={[styles.settingTitle, { color: theme.text }]}>{option.title}</Text>
-              <Text style={[styles.settingSubtitle, { color: theme.subtitle }]}>{option.subtitle}</Text>
+
+    const settingsOptions = [
+        {
+
+            icon: <Ionicons name="document-text-outline" size={26} color={theme.primary} />,
+            title: "Términos de Uso",
+            subtitle: "Leer los términos y condiciones",
+            action: "terms",
+        },
+        {
+            icon: <Ionicons name="key-outline" size={26} color={theme.primary} />,
+            title: "Cambiar Contraseña",
+            subtitle: "Actualizar tu contraseña",
+            action: "changePassword",
+        },
+        {
+            icon: (
+                <Ionicons
+                    name={isDark ? "moon" : "moon-outline"}
+                    size={26}
+                    color={theme.primary}
+                />
+            ),
+            title: "Modo Oscuro",
+            subtitle: isDark ? "Usando tema oscuro" : "Usando tema claro",
+            action: "theme",
+        },
+        {
+            icon: <Ionicons name="log-out-outline" size={26} color={theme.primary} />,
+            title: "Cerrar Sesión",
+            subtitle: "Salir de tu cuenta",
+            action: "logout",
+        },
+    ];
+
+    const handleOptionPress = (action) => {
+        if (action === "terms") {
+            navigation.navigate("TerminosUso");
+        } else if (action === "changePassword") {
+            navigation.navigate("CambiarContrasena");
+        } else if (action === "theme") {
+            toggleTheme();
+        } else if (action === "logout") {
+            setShowLogoutModal(true);
+        }
+    };
+
+    const handleConfirmLogout = async () => {
+        setShowLogoutModal(false);
+        try {
+            await logout();
+            Alert.alert(
+                "¡Éxito!",
+                "Has cerrado sesión correctamente.",
+                [{ text: "Aceptar", onPress: () => setUserToken(null) }],
+                { cancelable: false }
+            );
+        } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+            Alert.alert("Error", "No se pudo cerrar la sesión. Inténtalo de nuevo.");
+        }
+    };
+
+    const handleCancelLogout = () => {
+        setShowLogoutModal(false);
+    };
+
+    return (
+        <ScrollView
+            style={[styles.container, { backgroundColor: theme.background }]}
+            showsVerticalScrollIndicator={false}
+        >
+            {/* Opciones */}
+            <View>
+                {settingsOptions.map((option, index) => (
+                    <TouchableOpacity
+                        key={index}
+                        style={[styles.settingCard, { backgroundColor: theme.cardBackground }]}
+                        onPress={() => handleOptionPress(option.action)}
+                    >
+                        {/* ICON CONTAINER CORREGIDO: Usa color del tema condicionalmente */}
+                        <View style={[styles.iconContainer, { backgroundColor: theme.name === 'dark' ? theme.cardBackground : 'rgba(59,130,246,0.1)' }]}>
+                            {option.icon}
+                        </View>
+
+                        <View style={styles.textContainer}>
+                            <Text style={[styles.settingTitle, { color: theme.text }]}>
+                                {option.title}
+                            </Text>
+                            <Text style={[styles.settingSubtitle, { color: theme.subtitle }]}>
+                                {option.subtitle}
+                            </Text>
+                        </View>
+
+                        <Ionicons
+                            name="chevron-forward-outline"
+                            size={24}
+                            color={theme.subtitle}
+                        />
+                    </TouchableOpacity>
+                ))}
             </View>
-            <Ionicons name="chevron-forward-outline" size={24} color={theme.subtitle} />
-          </TouchableOpacity>
-        ))}
-      </View>
+            
+            {/* SECCIÓN DE ELIMINACIÓN DE CUENTA (Destructiva) */}
+            <View style={styles.deleteSection}>
+                <Text style={[styles.deleteHeader, { color: theme.text }]}>Zona de Riesgo</Text>
 
+                <TouchableOpacity 
+                    style={[styles.deleteButton, isDeleting && styles.disabledButton]}
+                    onPress={() => setShowDeleteModal(true)}
+                    disabled={isDeleting}
+                >
+                    {isDeleting ? (
+                        <ActivityIndicator color="white" />
+                    ) : (
+                        <Text style={styles.deleteButtonText}>
+                            <Ionicons name="trash-outline" size={18} color="white" /> Eliminar Cuenta
+                        </Text>
+                    )}
+                </TouchableOpacity>
 
-      <View style={styles.themeSwitcherContainer}>
-        <ThemeSwitcher />
-      </View>
-
-
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showLogoutModal}
-        onRequestClose={handleCancelLogout}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { backgroundColor: theme.cardBackground }]}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>Cerrar Sesión</Text>
-            <Text style={[styles.modalMessage, { color: theme.subtitle }]}>
-              ¿Estás seguro de que quieres cerrar tu sesión?
-            </Text>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalCancelButton} onPress={handleCancelLogout}>
-                <Text style={styles.modalCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.modalConfirmButton, { backgroundColor: theme.primary }]}
-                onPress={handleConfirmLogout}
-              >
-                <Text style={styles.modalConfirmText}>Aceptar</Text>
-              </TouchableOpacity>
+                <Text style={styles.deleteWarningText}>
+                    Esta acción es permanente e irreversible.
+                </Text>
             </View>
-          </View>
-        </View>
-      </Modal>
-    </ScrollView>
-  );
+
+
+            {/* Modal de cierre de sesión */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={showLogoutModal}
+                onRequestClose={handleCancelLogout}
+            >
+                <View style={styles.modalOverlay}>
+                    <View
+                        style={[
+                            styles.modalContainer,
+                            { backgroundColor: theme.cardBackground },
+                        ]}
+                    >
+                        <Text style={[styles.modalTitle, { color: theme.text }]}>
+                            Cerrar Sesión
+                        </Text>
+                        <Text style={[styles.modalMessage, { color: theme.subtitle }]}>
+                            ¿Estás seguro de que quieres cerrar tu sesión?
+                        </Text>
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                // ESTILO CORREGIDO: Borde y texto usan theme.subtitle
+                                style={[styles.modalCancelButton, { borderColor: theme.subtitle }]}
+                                onPress={handleCancelLogout}
+                            >
+                                <Text style={[styles.modalCancelText, { color: theme.subtitle }]}>Cancelar</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.modalConfirmButton,
+                                    { backgroundColor: theme.primary },
+                                ]}
+                                onPress={handleConfirmLogout}
+                            >
+                                <Text style={styles.modalConfirmText}>Aceptar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            
+            {/* Modal de eliminación de cuenta */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={showDeleteModal}
+                onRequestClose={() => setShowDeleteModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContainer, { backgroundColor: theme.cardBackground }]}>
+                        <Text style={[styles.modalTitle, { color: theme.text }]}>⚠️ Eliminar Cuenta</Text>
+                        <Text style={[styles.modalMessage, { color: theme.subtitle }]}>
+                            ¿Estás **absolutamente seguro**? Esta acción es irreversible y eliminará todos tus datos.
+                        </Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity 
+                                // ESTILO CORREGIDO: Borde y texto usan theme.subtitle
+                                style={[styles.modalCancelButton, { borderColor: theme.subtitle }]} 
+                                onPress={() => setShowDeleteModal(false)}
+                            >
+                                <Text style={[styles.modalCancelText, { color: theme.subtitle }]}>No, Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.modalConfirmDeleteButton}
+                                onPress={handleDeleteAccount}
+                            >
+                                <Text style={styles.modalConfirmText}>Eliminar Definitivamente</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        </ScrollView>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 30,
-  },
-  header: {
-    marginBottom: 30,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-  },
-  settingCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  iconContainer: {
-    marginRight: 18,
-    padding: 10,
-    borderRadius: 12,
-    backgroundColor: "rgba(59,130,246,0.1)",
-  },
-  textContainer: {
-    flex: 1,
-  },
-  settingTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-  },
-  settingSubtitle: {
-    fontSize: 13,
-  },
-  themeSwitcherContainer: {
-    marginTop: 30,
-  },
-
-  // Modal estilos (igual al dashboard)
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContainer: {
-    width: 300,
-    padding: 20,
-    borderRadius: 15,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  modalMessage: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  modalCancelButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: "#94a3b8",
-  },
-  modalCancelText: {
-    color: "#94a3b8",
-    fontWeight: "bold",
-  },
-  modalConfirmButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  modalConfirmText: {
-    color: "white",
-    fontWeight: "bold",
-  },
+    container: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 30,
+    },
+    settingCard: {
+        flexDirection: "row",
+        alignItems: "center",
+        borderRadius: 16,
+        padding: 18,
+        marginBottom: 15,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    iconContainer: {
+        marginRight: 18,
+        padding: 10,
+        borderRadius: 12,
+        // El color de fondo se aplica de forma condicional en el componente
+    },
+    textContainer: {
+        flex: 1,
+    },
+    settingTitle: {
+        fontSize: 17,
+        fontWeight: "600",
+    },
+    settingSubtitle: {
+        fontSize: 13,
+    },
+    // --- ESTILOS DE ELIMINACIÓN DE CUENTA ---
+    deleteSection: {
+        marginTop: 30,
+        paddingVertical: 15,
+        alignItems: 'center',
+    },
+    deleteHeader: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    deleteButton: {
+        backgroundColor: '#DC2626', // Rojo fijo para acción destructiva
+        padding: 15,
+        borderRadius: 10,
+        width: '100%',
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+    },
+    disabledButton: {
+        opacity: 0.6,
+    },
+    deleteButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginLeft: 5,
+    },
+    deleteWarningText: {
+        color: '#DC2626',
+        fontSize: 12,
+        marginTop: 10,
+    },
+    // --- ESTILOS DE MODAL (Reutilizados y adaptados) ---
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalContainer: {
+        width: 300,
+        padding: 20,
+        borderRadius: 15,
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalMessage: {
+        fontSize: 16,
+        textAlign: "center",
+        marginBottom: 20,
+    },
+    modalButtons: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "100%",
+    },
+    modalCancelButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 10,
+        alignItems: "center",
+        marginRight: 10,
+        borderWidth: 1,
+        // El color del borde y el texto se aplican dinámicamente
+    },
+    modalCancelText: {
+        fontWeight: "bold",
+        // El color del texto se aplica dinámicamente
+    },
+    modalConfirmButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 10,
+        alignItems: "center",
+    },
+    // Botón de confirmación de eliminación (ROJO)
+    modalConfirmDeleteButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 10,
+        alignItems: 'center',
+        backgroundColor: '#DC2626', // Rojo fijo
+    },
+    modalConfirmText: {
+        color: "white",
+        fontWeight: "bold",
+    },
 });

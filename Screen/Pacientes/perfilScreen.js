@@ -98,7 +98,7 @@ export default function PerfilScreen() {
       {/* Botón editar */}
       <BottonComponent
         title="Editar Perfil"
-        onPress={() => navigation.navigate("Inicio", { screen: "EditarPaciente" })} 
+        onPress={() => navigation.navigate("EditarPaciente" )} 
         style={[styles.editButton, { backgroundColor: theme.primary }]}
       />
 

@@ -1,14 +1,12 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert, Image, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert, Image, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
-import ThemeSwitcher from "../../components/ThemeSwitcher";
 import { useNavigation } from "@react-navigation/native";
 import { logout } from "../../Src/Service/AuthService";
 import apiConexion from "../../Src/Service/Conexion";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProximasCitas } from "../../Src/Service/PacienteService";
-import { RefreshControl } from "react-native";
 
 
 export default function DashboardScreen({ setUserToken }) {
@@ -22,6 +20,19 @@ export default function DashboardScreen({ setUserToken }) {
     const [citas, setCitas] = useState([]);
     const [loadingCitas, setLoadingCitas] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    const getStatusColor = (estado) => {
+        switch (estado) {
+            case "confirmada":
+                return "green"; 
+            case "cancelada":
+                return "red"; 
+            case "pendiente":
+                return "#grey"; 
+            default:
+                return theme.primary;
+        }
+    };
 
     const cargarCitas = async () => {
         try {
@@ -189,8 +200,8 @@ export default function DashboardScreen({ setUserToken }) {
                                 <Text style={[styles.doctorName, { color: theme.text }]}>
                                     Dr. {cita.doctor?.nombre} {cita.doctor?.apellido}
                                 </Text>
-                                <Text style={[styles.specialty, { color: theme.subtitle }]}>
-                                    {cita.especialidad || "Especialidad no definida"}
+                                <Text style={[styles.descripcion, { color: theme.subtitle }]}>
+                                    {cita.descripcion || "Sin descripción"}
                                 </Text>
                                 <View style={styles.appointmentDetails}>
                                     <Ionicons name="calendar-outline" size={16} color={theme.subtitle} />
@@ -201,9 +212,20 @@ export default function DashboardScreen({ setUserToken }) {
                                     <Text style={[styles.infoText, { color: theme.subtitle }]}>{cita.consultorio}</Text>
                                 </View>
                             </View>
-                            <TouchableOpacity style={[styles.viewDetailsBtn, { backgroundColor: theme.primary }]}>
-                                <Text style={styles.viewDetailsText}>Ver Detalles</Text>
+                            
+                            {/* BOTÓN DE ESTADO CORREGIDO */}
+                            <TouchableOpacity 
+                                style={[
+                                    styles.statusBtn, 
+                                    { backgroundColor: getStatusColor(cita.estado) } // Aplica el color dinámico
+                                ]}
+                            >
+                                <Text style={styles.statusText}>
+                                    {cita.estado || "Sin Estado"}
+                                </Text>
                             </TouchableOpacity>
+                            {/* FIN DE CORRECCIÓN */}
+
                         </View>
                     ))
                 )}
@@ -259,6 +281,7 @@ export default function DashboardScreen({ setUserToken }) {
         </ScrollView>
     );
 }
+// ----------------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
     container: {
@@ -307,11 +330,24 @@ const styles = StyleSheet.create({
     appointmentCard: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 15, borderRadius: 12, marginBottom: 10 },
     appointmentInfo: { flex: 1 },
     doctorName: { fontSize: 16, fontWeight: "bold" },
-    specialty: { fontSize: 14, marginBottom: 5 },
+    descripcion: { fontSize: 14, marginBottom: 5 },
     appointmentDetails: { flexDirection: "row", alignItems: "center" },
     infoText: { fontSize: 12, marginLeft: 5 },
-    viewDetailsBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 6 },
-    viewDetailsText: { color: "white", fontSize: 12, fontWeight: "bold" },
+    
+    // NUEVOS ESTILOS PARA EL ESTADO
+    statusBtn: { 
+        paddingVertical: 8, 
+        paddingHorizontal: 12, 
+        borderRadius: 6,
+        marginLeft: 10,
+    },
+    statusText: { 
+        color: "white", // Asegura buen contraste con los colores rojo, verde y gris oscuro
+        fontSize: 12, 
+        fontWeight: "bold" 
+    },
+    // FIN DE NUEVOS ESTILOS
+    
     actionsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginHorizontal: -5, marginTop: 10 },
     actionCard: { width: "30%", borderRadius: 12, padding: 15, alignItems: "center", justifyContent: "center", marginBottom: 10 },
     actionCardTitle: { fontSize: 12, fontWeight: "bold", marginTop: 5 },

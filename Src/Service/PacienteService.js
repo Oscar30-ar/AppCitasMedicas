@@ -55,3 +55,61 @@ export const ProximasCitas = async () => {
         };
     }
 };
+
+//Cambiar contraseña 
+export const CambiarContraseña  = async (current_password, new_password) => {
+    try {
+        const response = await apiConexion.post('/change-password', {
+            current_password,
+            new_password,
+            new_password_confirmation: new_password,
+        });
+
+        return { 
+            success: true, 
+            message: response.data.message || "Contraseña cambiada correctamente." 
+        };
+    } catch (error) {
+        console.error("Error en CambiarContraseña service:", error);
+        
+        // El interceptor de apiConexion ya maneja errores 401
+        const errorMessage = error.response?.data?.message || "Error al cambiar la contraseña. Verifica la contraseña actual.";
+        return { 
+            success: false, 
+            message: errorMessage 
+        };
+    }
+};
+
+export async function eliminarCuentaPaciente() {
+    try {
+        const token = await AsyncStorage.getItem("userToken");
+        
+        if (!token) {
+            return { success: false, message: "No hay sesión activa." };
+        }
+
+        // Llama al endpoint 'eliminarCuenta' usando el método DELETE
+        const response = await apiConexion.delete('eliminarCuenta', {
+            headers: {
+                Authorization: `Bearer ${token}`, // Envía el token para identificar al usuario
+            }
+        });
+
+        // La API de Laravel devuelve un objeto JSON con success: true
+        if (response.data && response.data.success) {
+            // Limpiamos el almacenamiento local después de la eliminación exitosa en el backend
+            await AsyncStorage.multiRemove(["userToken", "rolUser"]);
+            return { success: true, message: response.data.message };
+        } else {
+            // Maneja el caso en que el backend no devuelve success: true
+            return { success: false, message: response.data.message || "Error al eliminar la cuenta." };
+        }
+        
+    } catch (error) {
+        console.error("Error en el servicio de eliminación de cuenta:", error.response?.data || error.message);
+        // Captura el mensaje de error del servidor (si existe)
+        const errorMessage = error.response?.data?.message || "Error de red o servidor al eliminar.";
+        return { success: false, message: errorMessage };
+    }
+}

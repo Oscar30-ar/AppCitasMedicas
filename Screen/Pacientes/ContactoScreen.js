@@ -1,77 +1,104 @@
-import React from "react";
+import React, { useContext } from "react";
 import { View, Text, StyleSheet, Linking, TouchableOpacity } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { ThemeContext } from "../../components/ThemeContext"; // Importamos el contexto
 
 export default function ContactoScreen() {
+    const { theme } = useContext(ThemeContext); // Obtenemos el tema actual
+
     const handleCall = () => {
-        Linking.openURL("tel:+1234567890"); // Reemplaza con el número real
+        Linking.openURL("tel:+573122884645"); // Número real
     };
 
     const handleEmail = () => {
-        Linking.openURL("mailto:contacto@clinicaandes.com"); // Reemplaza con el email real
+        Linking.openURL("mailto:clinicaLosAndes@gmail.com"); // Email real
     };
 
     const handleMap = () => {
-        // Navegar al mapa o abrir enlace
-        Linking.openURL("https://maps.app.goo.gl/BuJ9m1VDeXDCE43ZA"); // Reemplaza con la URL real
+        // En este componente, la navegación es solo a través de enlaces externos
+        Linking.openURL("https://maps.app.goo.gl/BuJ9m1VDeXDCE43ZA"); // URL real
     };
 
     return (
-        <View style={styles.container}>
+        // Aplicamos theme.background al contenedor principal
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
             <View style={styles.header}>
-                <View style={styles.logoContainer}>
-                    <FontAwesome5 name="heartbeat" size={30} color="#3b82f6" />
+                {/* Aplicamos theme.cardBackground y theme.primary al logo */}
+                <View style={[styles.logoContainer, { backgroundColor: theme.cardBackground }]}>
+                    <FontAwesome5 name="heartbeat" size={30} color={theme.primary} />
                 </View>
-                <Text style={styles.pageTitle}>Contacto</Text>
+                {/* Aplicamos theme.text al título de la página */}
+                <Text style={[styles.pageTitle, { color: theme.text }]}>Contacto</Text>
             </View>
 
             <View style={styles.content}>
-                <Text style={styles.description}>
+                {/* Aplicamos theme.subtitle a la descripción */}
+                <Text style={[styles.description, { color: theme.subtitle }]}>
                     Ponte en contacto con nosotros para cualquier consulta o emergencia.
                 </Text>
 
-                <View style={styles.contactItem}>
-                    <Ionicons name="call" size={24} color="#3b82f6" />
+                {/* --- ITEM: TELÉFONO --- */}
+                <View style={[styles.contactItem, { backgroundColor: theme.cardBackground }]}>
+                    {/* Icono con theme.primary */}
+                    <Ionicons name="call" size={24} color={theme.primary} />
                     <View style={styles.contactInfo}>
-                        <Text style={styles.contactLabel}>Teléfono</Text>
+                        {/* Label con theme.subtitle */}
+                        <Text style={[styles.contactLabel, { color: theme.subtitle }]}>Teléfono</Text>
                         <TouchableOpacity onPress={handleCall}>
-                            <Text style={styles.contactValue}>+57 (312) 288-4645</Text>
+                            {/* Valor con theme.primary para que se destaque como clickeable */}
+                            <Text style={[styles.contactValue, { color: theme.primary }]}>+57 (312) 288-4645</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                <View style={styles.contactItem}>
-                    <Ionicons name="mail" size={24} color="#3b82f6" />
+                {/* --- ITEM: CORREO ELECTRÓNICO --- */}
+                <View style={[styles.contactItem, { backgroundColor: theme.cardBackground }]}>
+                    {/* Icono con theme.primary */}
+                    <Ionicons name="mail" size={24} color={theme.primary} />
                     <View style={styles.contactInfo}>
-                        <Text style={styles.contactLabel}>Correo Electrónico</Text>
+                        {/* Label con theme.subtitle */}
+                        <Text style={[styles.contactLabel, { color: theme.subtitle }]}>Correo Electrónico</Text>
                         <TouchableOpacity onPress={handleEmail}>
-                            <Text style={styles.contactValue}>clinicaLosAndes@gmail.com</Text>
+                            {/* Valor con theme.primary para que se destaque como clickeable */}
+                            <Text style={[styles.contactValue, { color: theme.primary }]}>clinicaLosAndes@gmail.com</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
 
-                <View style={styles.contactItem}>
-                    <Ionicons name="logo-facebook" size={24} color="#3d6cd9ff" />
+                {/* --- ITEM: FACEBOOK (Se usa un color fijo para las marcas sociales) --- */}
+                <View style={[styles.contactItem, { backgroundColor: theme.cardBackground }]}>
+                    {/* Icono con color fijo de Facebook */}
+                    <Ionicons name="logo-facebook" size={24} color="#3d6cd9" />
                     <View style={styles.contactInfo}>
-                        <Text style={styles.contactLabel}>Facebook</Text>
-                            <Text style={styles.contactValue}>Clinica Los Andes</Text>
+                        {/* Label con theme.subtitle */}
+                        <Text style={[styles.contactLabel, { color: theme.subtitle }]}>Facebook</Text>
+                        {/* Valor con theme.text */}
+                        <Text style={[styles.contactValue, { color: theme.text }]}>Clinica Los Andes</Text>
                     </View>
                 </View>
 
-                <View style={styles.contactItem}>
-                    <Ionicons name="logo-instagram" size={24} color="#3d6cd9ff" />
+                {/* --- ITEM: INSTAGRAM (Se usa un color fijo para las marcas sociales) --- */}
+                <View style={[styles.contactItem, { backgroundColor: theme.cardBackground }]}>
+                    {/* Icono con color fijo de Instagram */}
+                    <Ionicons name="logo-instagram" size={24} color="#3d6cd9" />
                     <View style={styles.contactInfo}>
-                        <Text style={styles.contactLabel}>Instagram</Text>
-                            <Text style={styles.contactValue}>Clinica Los Andes</Text>
+                        {/* Label con theme.subtitle */}
+                        <Text style={[styles.contactLabel, { color: theme.subtitle }]}>Instagram</Text>
+                        {/* Valor con theme.text */}
+                        <Text style={[styles.contactValue, { color: theme.text }]}>Clinica Los Andes</Text>
                     </View>
                 </View>
 
-                <View style={styles.contactItem}>
-                    <Ionicons name="time" size={24} color="#3b82f6" />
+                {/* --- ITEM: HORARIOS --- */}
+                <View style={[styles.contactItem, { backgroundColor: theme.cardBackground }]}>
+                    {/* Icono con theme.primary */}
+                    <Ionicons name="time" size={24} color={theme.primary} />
                     <View style={styles.contactInfo}>
-                        <Text style={styles.contactLabel}>Horarios</Text>
-                        <Text style={styles.contactValue}>Lunes - Viernes: 8:00 AM - 6:00 PM</Text>
-                        <Text style={styles.contactValue}>Sábados: 9:00 AM - 2:00 PM</Text>
+                        {/* Label con theme.subtitle */}
+                        <Text style={[styles.contactLabel, { color: theme.subtitle }]}>Horarios</Text>
+                        {/* Valores con theme.text */}
+                        <Text style={[styles.contactValue, { color: theme.text }]}>Lunes - Viernes: 8:00 AM - 6:00 PM</Text>
+                        <Text style={[styles.contactValue, { color: theme.text }]}>Sábados: 9:00 AM - 2:00 PM</Text>
                     </View>
                 </View>
             </View>
@@ -82,7 +109,7 @@ export default function ContactoScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#0f172a",
+        // El color de fondo se aplica dinámicamente
         padding: 20,
     },
     header: {
@@ -101,12 +128,12 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
-        backgroundColor: "#1e293b",
+        // El color de fondo se aplica dinámicamente
     },
     pageTitle: {
         fontSize: 22,
         fontWeight: "bold",
-        color: "#f4f4f5",
+        // El color del texto se aplica dinámicamente
         textAlign: "center",
     },
     content: {
@@ -114,14 +141,14 @@ const styles = StyleSheet.create({
     },
     description: {
         fontSize: 16,
-        color: "#d1d5db",
+        // El color del texto se aplica dinámicamente
         textAlign: "center",
         marginBottom: 30,
     },
     contactItem: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#1e293b",
+        // El color de fondo se aplica dinámicamente
         padding: 15,
         borderRadius: 10,
         marginBottom: 15,
@@ -132,12 +159,12 @@ const styles = StyleSheet.create({
     },
     contactLabel: {
         fontSize: 14,
-        color: "#94a3b8",
+        // El color del texto se aplica dinámicamente
         fontWeight: "bold",
     },
     contactValue: {
         fontSize: 16,
-        color: "#f4f4f5",
+        // El color del texto se aplica dinámicamente
         marginTop: 2,
     },
 });

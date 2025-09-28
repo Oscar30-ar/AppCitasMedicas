@@ -30,31 +30,31 @@ export default function Pacientes_Stack({ setUserToken }){
             <Stack.Screen
                 name="HistorialMedico"
                 component={HistorialMedicoScreen}
-                options={{title: "Pacientes"}}
+                options={{title: "Historial Medico"}}
             />
 
             <Stack.Screen
                 name="Mapa"
                 component={MapaScreen}
-                options={{title: "Pacientes"}}
+                options={{title: "Mapa"}}
             />
 
             <Stack.Screen
                 name="Contacto"
                 component={ContactoScreen}
-                options={{title: "Pacientes"}}
+                options={{title: "Contacto"}}
             />
 
             <Stack.Screen
                 name="CambiarContrasena"
                 component={CambiarContrasenaScreen}
-                options={{title: "Pacientes"}}
+                options={{title: "Cambiar Contraseña"}}
             />
 
             <Stack.Screen
                 name="TerminosUso"
                 component={TerminosUsoScreen}
-                options={{title: "Pacientes"}}
+                options={{title: "Terminos de Uso"}}
             />
 
             <Stack.Screen
