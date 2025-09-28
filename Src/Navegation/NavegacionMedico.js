@@ -9,6 +9,8 @@ import PerfilScreenMedico from "../../Screen/Medicos/perfilScreenMedico";
 import EditarMedicoScreen from "../../Screen/Medicos/EditarMedicoScreen";
 import configuracion_Medico from "../../Screen/Medicos/configuracion_Medico";
 import CambiarContrasenaMedico from "../../Screen/Medicos/CambiarContrasenaMedico";
+import Medico_Stack from "./Stack/MedicosStack";
+import DashboardMedico from "../../Screen/Medicos/DashboardMedico";
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -17,7 +19,7 @@ function PerfilStackWrapperMedico({ setUserToken }) {
         <Stack.Navigator>
             <Stack.Screen
                 name="PerfilMainMedico"
-                children={(props) => <PerfilScreenMedico {...props} setUserToken={setUserToken} />}
+                children={(props) => <DashboardMedico {...props} setUserToken={setUserToken} />}
                 options={{
                     title: "Mi Perfil", 
                     headerShown: true, 

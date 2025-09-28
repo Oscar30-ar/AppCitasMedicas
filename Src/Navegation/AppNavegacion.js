@@ -18,7 +18,7 @@ export default function AppNavegacion() {
     const loadToken = async () => {
         try {
             const token = await AsyncStorage.getItem("userToken");
-            const role = await AsyncStorage.getItem("userRole");
+            const role = await AsyncStorage.getItem("rolUser");
             setUserToken(token);
             setUserRole(role);
         } catch (error) {
