@@ -27,7 +27,7 @@ export default function DashboardRecepcionista({ setUserToken }) {
     const [stats, setStats] = useState(null);
     const [loadingStats, setLoadingStats] = useState(true);
 
-    // 🔹 Cargar estadísticas para las tarjetas
+    //  Cargar estadísticas para las tarjetas
     useEffect(() => {
         const cargarStats = async () => {
             const res = await obtenerEstadisticasRecepcion();
@@ -41,7 +41,7 @@ export default function DashboardRecepcionista({ setUserToken }) {
         cargarStats();
     }, []);
 
-    // 🔹 Cargar perfil usuario
+    // Cargar perfil usuario
     useEffect(() => {
         const CargarPerfil = async () => {
             try {
@@ -101,7 +101,7 @@ export default function DashboardRecepcionista({ setUserToken }) {
         );
     }
 
-    // 🔹 Logout
+    //  Logout
     const handleLogoutConfirmation = () => {
         setShowLogoutModal(true);
     };
@@ -127,7 +127,7 @@ export default function DashboardRecepcionista({ setUserToken }) {
         setShowLogoutModal(false);
     };
 
-    // 🔹 KPICard componente
+    //  KPICard componente
     const KPICard = ({ title, value, icon, color }) => (
         <View
             style={[
@@ -147,7 +147,7 @@ export default function DashboardRecepcionista({ setUserToken }) {
         </View>
     );
 
-    // 🔹 KPI con datos reales del backend
+    // KPI con datos reales del backend
     const KPI_DATA = stats
         ? [
             {
@@ -177,7 +177,7 @@ export default function DashboardRecepcionista({ setUserToken }) {
         ]
         : [];
 
-    // 🔹 ModuleCard componente
+    // ModuleCard componente
     const ModuleCard = ({ title, subtitle, icon, onPress }) => (
         <TouchableOpacity
             style={[styles.moduleCard, { backgroundColor: theme.cardBackground }]}
@@ -235,7 +235,7 @@ export default function DashboardRecepcionista({ setUserToken }) {
                     </Text>
                 </View>
                 <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
-                    Código de Empleado: EMP001 | Turno: Mañana
+                    Espero que tengas un excelente dia!
                 </Text>
 
                 {/* Acciones Rápidas */}

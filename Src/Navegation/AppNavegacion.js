@@ -1,7 +1,7 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useState, useEffect, useRef } from 'react';
-import { AppState, ActivityIndicator, View, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { AppState, ActivityIndicator, View, Text, StyleSheet, Alert } from 'react-native';
 
 // Navegaciones
 import AuthNavegacion from "./AuthNavegacion";
@@ -9,13 +9,15 @@ import NavegacionMedico from './NavegacionMedico';
 import NavegacionPaciente from './NavegacionPaciente';
 import NavegacionRecepcionista from './NavegacionRecepcionista';
 
+
 export default function AppNavegacion() {
     const [isLoading, setIsLoading] = useState(true);
     const [userToken, setUserToken] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const appState = useRef(AppState.currentState);
 
-    const loadToken = async () => {
+    const navigationRef = useNavigationContainerRef();
+    const loadToken = useCallback(async () => {
         try {
             const token = await AsyncStorage.getItem("userToken");
             const role = await AsyncStorage.getItem("rolUser");
@@ -26,11 +28,11 @@ export default function AppNavegacion() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         loadToken();
-    }, []);
+    }, [loadToken]);
 
     // Manejo de estados de la app (foreground/background)
     useEffect(() => {
@@ -43,7 +45,7 @@ export default function AppNavegacion() {
         };
 
         const subscription = AppState.addEventListener("change", handleAppStateChange);
-        return () => subscription.remove();
+        return () => subscription.remove(); 
     }, []);
 
     // Mientras se carga AsyncStorage
@@ -70,7 +72,7 @@ export default function AppNavegacion() {
     };
 
     return (
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
             {userToken ? renderMainStack() : <AuthNavegacion setUserToken={setUserToken} setUserRole={setUserRole}/>}
         </NavigationContainer>
     );

@@ -46,20 +46,17 @@ export default function HistorialMedicoScreen() {
 
                 if (result.success && Array.isArray(result.data)) {
                     
-                    // Mapeo de datos: De la estructura de Laravel a la estructura del componente
                     const formattedHistory = result.data.map(cita => ({
                         id: cita.id,
-                        date: cita.fecha, // Base de datos: citas.fecha
-                        time: cita.hora, // Base de datos: citas.hora
-                        description: cita.descripcion || 'Consulta sin detalles', // Base de datos: citas.descripcion
-                        consultorio: cita.consultorio, // Base de datos: citas.consultorio
+                        date: cita.fecha, 
+                        time: cita.hora, 
+                        description: cita.descripcion || 'Consulta sin detalles',
+                        consultorio: cita.consultorio, 
                         
                         eventType: 'Consulta', 
                         
-                        // Citas tiene relación 'doctor', que a su vez debe tener una relación 'especialidades' (muchos a muchos)
                         doctor: `Dr. ${cita.doctor?.nombre || ''} ${cita.doctor?.apellido || ''}`, 
                         
-                        // Asumimos que el doctor tiene una relación 'especialidades' y tomamos la primera
                         specialty: cita.doctor?.especialidades?.[0]?.nombre || 'Medicina General', 
                     }));
                     

@@ -19,13 +19,13 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleResetPassword = async () => {
-    // ✅ Validar que haya un correo
+    // Validar que haya un correo
     if (!email) {
       Alert.alert("Error", "Por favor ingresa tu correo electrónico.");
       return;
     }
 
-    // ✅ Validar formato del correo
+    // Validar formato del correo
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert("Error", "Por favor ingresa un correo electrónico válido.");
@@ -35,7 +35,7 @@ export default function ForgotPasswordScreen({ navigation }) {
     setLoading(true);
 
     try {
-      // ✅ Llamar correctamente a la API
+      //  Llamar correctamente a la API
       const result = await requestPasswordReset({ correo: email });
 
       if (result.success) {

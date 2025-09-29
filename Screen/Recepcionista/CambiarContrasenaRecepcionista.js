@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
-import { changePassword } from "../../Src/Service/MedicoService"; // Usamos la función genérica
+import { changePassword } from "../../Src/Service/MedicoService"; 
 
 export default function CambiarContrasenaRecepcionista({ navigation }) {
     const { theme } = useContext(ThemeContext);

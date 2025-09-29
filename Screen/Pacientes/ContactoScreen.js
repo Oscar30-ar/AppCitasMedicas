@@ -1,38 +1,33 @@
 import React, { useContext } from "react";
 import { View, Text, StyleSheet, Linking, TouchableOpacity } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { ThemeContext } from "../../components/ThemeContext"; // Importamos el contexto
+import { ThemeContext } from "../../components/ThemeContext"; 
 
 export default function ContactoScreen() {
-    const { theme } = useContext(ThemeContext); // Obtenemos el tema actual
+    const { theme } = useContext(ThemeContext);
 
     const handleCall = () => {
-        Linking.openURL("tel:+573122884645"); // Número real
+        Linking.openURL("tel:+573122884645");
     };
 
     const handleEmail = () => {
-        Linking.openURL("mailto:clinicaLosAndes@gmail.com"); // Email real
+        Linking.openURL("mailto:clinicaLosAndes@gmail.com"); 
     };
 
     const handleMap = () => {
-        // En este componente, la navegación es solo a través de enlaces externos
-        Linking.openURL("https://maps.app.goo.gl/BuJ9m1VDeXDCE43ZA"); // URL real
+        Linking.openURL("https://maps.app.goo.gl/BuJ9m1VDeXDCE43ZA"); 
     };
 
     return (
-        // Aplicamos theme.background al contenedor principal
         <View style={[styles.container, { backgroundColor: theme.background }]}>
             <View style={styles.header}>
-                {/* Aplicamos theme.cardBackground y theme.primary al logo */}
                 <View style={[styles.logoContainer, { backgroundColor: theme.cardBackground }]}>
                     <FontAwesome5 name="heartbeat" size={30} color={theme.primary} />
                 </View>
-                {/* Aplicamos theme.text al título de la página */}
                 <Text style={[styles.pageTitle, { color: theme.text }]}>Contacto</Text>
             </View>
 
             <View style={styles.content}>
-                {/* Aplicamos theme.subtitle a la descripción */}
                 <Text style={[styles.description, { color: theme.subtitle }]}>
                     Ponte en contacto con nosotros para cualquier consulta o emergencia.
                 </Text>
@@ -109,7 +104,6 @@ export default function ContactoScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        // El color de fondo se aplica dinámicamente
         padding: 20,
     },
     header: {
@@ -128,12 +122,10 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
-        // El color de fondo se aplica dinámicamente
     },
     pageTitle: {
         fontSize: 22,
         fontWeight: "bold",
-        // El color del texto se aplica dinámicamente
         textAlign: "center",
     },
     content: {
@@ -141,14 +133,12 @@ const styles = StyleSheet.create({
     },
     description: {
         fontSize: 16,
-        // El color del texto se aplica dinámicamente
         textAlign: "center",
         marginBottom: 30,
     },
     contactItem: {
         flexDirection: "row",
         alignItems: "center",
-        // El color de fondo se aplica dinámicamente
         padding: 15,
         borderRadius: 10,
         marginBottom: 15,
@@ -159,12 +149,10 @@ const styles = StyleSheet.create({
     },
     contactLabel: {
         fontSize: 14,
-        // El color del texto se aplica dinámicamente
         fontWeight: "bold",
     },
     contactValue: {
         fontSize: 16,
-        // El color del texto se aplica dinámicamente
         marginTop: 2,
     },
 });

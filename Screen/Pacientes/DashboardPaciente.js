@@ -213,18 +213,16 @@ export default function DashboardScreen({ setUserToken }) {
                                 </View>
                             </View>
                             
-                            {/* BOTÓN DE ESTADO CORREGIDO */}
                             <TouchableOpacity 
                                 style={[
                                     styles.statusBtn, 
-                                    { backgroundColor: getStatusColor(cita.estado) } // Aplica el color dinámico
+                                    { backgroundColor: getStatusColor(cita.estado) }
                                 ]}
                             >
                                 <Text style={styles.statusText}>
                                     {cita.estado || "Sin Estado"}
                                 </Text>
                             </TouchableOpacity>
-                            {/* FIN DE CORRECCIÓN */}
 
                         </View>
                     ))
@@ -281,7 +279,6 @@ export default function DashboardScreen({ setUserToken }) {
         </ScrollView>
     );
 }
-// ----------------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
     container: {
@@ -334,7 +331,6 @@ const styles = StyleSheet.create({
     appointmentDetails: { flexDirection: "row", alignItems: "center" },
     infoText: { fontSize: 12, marginLeft: 5 },
     
-    // NUEVOS ESTILOS PARA EL ESTADO
     statusBtn: { 
         paddingVertical: 8, 
         paddingHorizontal: 12, 
@@ -342,11 +338,10 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
     statusText: { 
-        color: "white", // Asegura buen contraste con los colores rojo, verde y gris oscuro
+        color: "white", 
         fontSize: 12, 
         fontWeight: "bold" 
     },
-    // FIN DE NUEVOS ESTILOS
     
     actionsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginHorizontal: -5, marginTop: 10 },
     actionCard: { width: "30%", borderRadius: 12, padding: 15, alignItems: "center", justifyContent: "center", marginBottom: 10 },

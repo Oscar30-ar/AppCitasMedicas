@@ -67,7 +67,7 @@ const UserForm = ({
         </Text>
       </TouchableOpacity>
 
-      {/* Botón Iniciar Sesión */}
+      {/*Iniciar Sesión */}
       <TouchableOpacity
         style={[styles.loginBtn, { backgroundColor: theme.primary }]}
         onPress={onLogin}
@@ -81,7 +81,7 @@ const UserForm = ({
         )}
       </TouchableOpacity>
 
-      {/* Botón Registrarse (solo pacientes) */}
+      {/* Botón Registrarse */}
       {userType === "paciente" && (
         <TouchableOpacity
           style={[styles.registerBtn, { borderColor: theme.primary }]}

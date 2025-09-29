@@ -8,6 +8,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import EditarMedicoScreen from "../../Screen/Medicos/EditarMedicoScreen";
 import CambiarContrasenaMedico from "../../Screen/Medicos/CambiarContrasenaMedico";
 import Medico_Stack from "./Stack/MedicosStack";
+import AgendaHoyMedicoScreen from "../../Screen/Medicos/AgendaHoyMedicoScreen";
 import PerfilMedicoScreen from "../../Screen/Medicos/perfilScreenMedico";
 import ConfiguracionMedicoScreen from "../../Screen/Medicos/configuracion_Medico"; 
 
@@ -46,6 +47,11 @@ function ConfiguracionStackWrapperMedico({ setUserToken }) {
                 name="CambiarContrasenaMedico"
                 component={CambiarContrasenaMedico} 
                 options={{ title: "Cambiar Contraseña" }}
+            />
+             <Stack.Screen
+                name="AgendaHoy"
+                component={AgendaHoyMedicoScreen} 
+                options={{ title: "Agenda de Hoy" }}
             />
         </Stack.Navigator>
     );
@@ -124,4 +130,3 @@ export default function NavegacionMedico({ setUserToken }) {
         </Tab.Navigator>
     );
 }
-

@@ -45,13 +45,13 @@ function ConfiguracionStackWrapper({ setUserToken }) {
 
             <Stack.Screen
                 name="TerminosUso"
-                component={TerminosUsoScreen} // crea esta pantalla
+                component={TerminosUsoScreen} 
                 options={{ title: "Términos de Uso" }}
             />
 
             <Stack.Screen
                 name="CambiarContrasena"
-                component={CambiarContrasenaScreen} // crea esta también
+                component={CambiarContrasenaScreen} 
                 options={{ title: "Cambiar Contraseña" }}
             />
         </Stack.Navigator>

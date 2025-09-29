@@ -22,7 +22,6 @@ apiConexion.interceptors.request.use(
                 config.headers.Authorization = `Bearer ${userToken}`;
             }
         }
-
         return config;
     },
     (error) => {
@@ -32,14 +31,11 @@ apiConexion.interceptors.request.use(
 
 apiConexion.interceptors.response.use(
     (response) => response,
-
     async (error) => {
         const originalRequest = error.config;
         const EsRutaPublica = RutasPublicas.some(ruta => originalRequest.url.includes(ruta));
-
         if (error.response && error.response.status === 401 && !originalRequest._retry && !EsRutaPublica) {
             originalRequest._retry = true;
-            await AsyncStorage.removeItem("userToken"); //elimina el token guardado
             alert("Token invalido o expirado. Redirigido al login");
         }
         return Promise.reject(error);

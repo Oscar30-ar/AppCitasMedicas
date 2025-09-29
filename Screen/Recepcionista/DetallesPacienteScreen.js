@@ -5,7 +5,7 @@ import { ThemeContext } from "../../components/ThemeContext";
 
 export default function DetallePacienteScreen({ route }) {
     const { theme } = useContext(ThemeContext);
-    const { paciente } = route.params; // 👈 viene desde el navigate
+    const { paciente } = route.params; 
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>

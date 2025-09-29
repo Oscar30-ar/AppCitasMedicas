@@ -12,7 +12,6 @@ export default function EditarMedicoScreen({ navigation }) {
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [loadingUpdate, setLoadingUpdate] = useState(false);
 
-  // Estados del formulario inicializados a vacío/fecha actual
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [documento, setDocumento] = useState("");
@@ -197,7 +196,7 @@ export default function EditarMedicoScreen({ navigation }) {
           value={documento}
           keyboardType="numeric"
           onChangeText={setDocumento}
-          editable={false} // El documento no debería ser editable
+          editable={false}
         />
         <TextInput
           style={[styles.input, {backgroundColor: theme.background, color: theme.text, borderColor: theme.border}]}

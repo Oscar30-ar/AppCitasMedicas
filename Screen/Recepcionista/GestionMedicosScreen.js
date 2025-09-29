@@ -35,12 +35,11 @@ export default function GestionMedicosScreen() {
     const [doctores, setDoctores] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // ✅ Cargar doctores desde el backend
     useEffect(() => {
         const cargarDoctores = async () => {
             try {
                 const response = await obtenerDoctores();
-                console.log("👩‍⚕️ Doctores cargados:", response.data); // 👈 agrega esto
+                console.log("👩‍⚕️ Doctores cargados:", response.data); 
 
                 if (response.success) {
                     setDoctores(response.data.data);
@@ -58,7 +57,6 @@ export default function GestionMedicosScreen() {
         cargarDoctores();
     }, []);
 
-    // ✅ Eliminar médico
     const handleDelete = (doctor) => {
         Alert.alert(
             "Confirmar Eliminación",
@@ -92,9 +90,7 @@ export default function GestionMedicosScreen() {
     };
 
     const handleEdit = (doctor) => {
-        // Aquí podrías navegar a la pantalla de edición, por ejemplo:
-        // navigation.navigate('EditarMedico', { doctorId: doctor.id });
-        Alert.alert("Próximamente", `Aquí se editará al Dr. ${doctor.nombre}.`);
+        navigation.navigate('EditarMedico', { doctorId: doctor.id });
     };
 
     if (loading) {
@@ -170,14 +166,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
     },
-    // 💡 NUEVO ESTILO para la especialidad
     doctorSpecialty: {
         fontSize: 14,
         marginTop: 5,
         fontStyle: 'italic',
     },
     doctorDetail: {
-        // Este estilo original ahora está vacío o se puede eliminar
         fontSize: 14,
         marginTop: 2,
     },

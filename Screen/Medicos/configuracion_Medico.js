@@ -33,7 +33,6 @@ export default function configuracionMedico({ setUserToken }) {
             const result = await eliminarCuentaMedico(); 
 
             if (result.success) {
-                // El servicio debe encargarse de limpiar AsyncStorage
                 Alert.alert(
                     "¡Éxito!", 
                     result.message, 
@@ -144,7 +143,6 @@ export default function configuracionMedico({ setUserToken }) {
                 ))}
             </View>
             
-            {/* SECCIÓN DE ELIMINACIÓN DE CUENTA (Destructiva) */}
             <View style={styles.deleteSection}>
                 <Text style={[styles.deleteHeader, { color: theme.text }]}>Zona de Riesgo</Text>
 
@@ -191,7 +189,6 @@ export default function configuracionMedico({ setUserToken }) {
 
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                // ESTILO CORREGIDO: Borde y texto usan theme.subtitle
                                 style={[styles.modalCancelButton, { borderColor: theme.subtitle }]}
                                 onPress={handleCancelLogout}
                             >
@@ -269,7 +266,6 @@ const styles = StyleSheet.create({
         marginRight: 18,
         padding: 10,
         borderRadius: 12,
-        // El color de fondo se aplica de forma condicional en el componente
     },
     textContainer: {
         flex: 1,
@@ -293,7 +289,7 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     deleteButton: {
-        backgroundColor: '#DC2626', // Rojo fijo para acción destructiva
+        backgroundColor: '#DC2626',
         padding: 15,
         borderRadius: 10,
         width: '100%',
@@ -356,11 +352,9 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginRight: 10,
         borderWidth: 1,
-        // El color del borde y el texto se aplican dinámicamente
     },
     modalCancelText: {
         fontWeight: "bold",
-        // El color del texto se aplica dinámicamente
     },
     modalConfirmButton: {
         flex: 1,
@@ -368,13 +362,12 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: "center",
     },
-    // Botón de confirmación de eliminación (ROJO)
     modalConfirmDeleteButton: {
         flex: 1,
         padding: 12,
         borderRadius: 10,
         alignItems: 'center',
-        backgroundColor: '#DC2626', // Rojo fijo
+        backgroundColor: '#DC2626', 
     },
     modalConfirmText: {
         color: "white",

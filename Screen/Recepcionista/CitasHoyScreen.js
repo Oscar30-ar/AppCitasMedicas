@@ -17,9 +17,8 @@ export default function CitasHoyScreen() {
     const { theme } = useContext(ThemeContext);
     const [citas, setCitas] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [updatingId, setUpdatingId] = useState(null); // id de la cita que se está actualizando
+    const [updatingId, setUpdatingId] = useState(null);
 
-    // Cargar citas desde el backend
     useEffect(() => {
         const cargarCitas = async () => {
             setLoading(true);
@@ -176,8 +175,8 @@ export default function CitasHoyScreen() {
                                     style={[
                                         styles.confirmarButton,
                                         appointment.estado === "confirmada"
-                                            ? styles.confirmarButtonDisabled // aplica diseño gris completo
-                                            : styles.confirmarButtonActive,  // aplica diseño verde
+                                            ? styles.confirmarButtonDisabled
+                                            : styles.confirmarButtonActive,  
                                     ]}
                                     onPress={() => handleConfirmar(appointment.id, appointment.pacientes?.nombre)}
                                     disabled={appointment.estado === "confirmada"}
@@ -232,11 +231,11 @@ const styles = StyleSheet.create({
     },
 
     confirmarButtonActive: {
-        backgroundColor: "#0f8e37ff", // verde
+        backgroundColor: "#0f8e37ff",
     },
 
     confirmarButtonDisabled: {
-        backgroundColor: "#9e9e9e", // gris
+        backgroundColor: "#9e9e9e", 
         opacity: 0.8,
     },
 

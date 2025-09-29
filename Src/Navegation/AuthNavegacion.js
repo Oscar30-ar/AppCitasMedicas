@@ -25,17 +25,23 @@ export default function AuthNavegacion({ setUserToken, setUserRole }) {
             />
             <Stack.Screen
                 name="DashboardPaciente"
-                component={DashboardComponent}
+                children={(props) => (
+                    <DashboardComponent {...props} setUserToken={setUserToken} />
+                )}
                 options={{ title: "Dashboard Paciente" }}
             />
             <Stack.Screen
                 name="DashboardMedico"
-                component={DashboardMedico}
+                children={(props) => (
+                    <DashboardMedico {...props} setUserToken={setUserToken} />
+                )}
                 options={{ title: "Dashboard Médico" }}
             />
             <Stack.Screen
                 name="DashboardRecepcionista"
-                component={DashboardRecepcionista}
+                children={(props) => (
+                    <DashboardRecepcionista {...props} setUserToken={setUserToken} />
+                )}
                 options={{ title: "Dashboard Recepcionista" }}
             />
             <Stack.Screen
@@ -44,7 +50,7 @@ export default function AuthNavegacion({ setUserToken, setUserRole }) {
                 options={{ title: "Registrarse" }}
             />
             <Stack.Screen
-                name="ForgotPasswordScreen"
+                name="ForgotPassword"
                 component={ForgotPasswordScreen}
                 options={{ title: 'Restablecer Contraseña' }}
             />

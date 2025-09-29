@@ -1,6 +1,7 @@
 import apiConexion from "./Conexion";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+//Obtener pacientes
 export const obtenerPacientes = async () => {
   try {
     const response = await apiConexion.get("/pacientes");
@@ -14,6 +15,7 @@ export const obtenerPacientes = async () => {
   }
 };
 
+//listar especualidades
 export const getEspecialidades = async () => {
     try {
         const response = await apiConexion.get("/especialidades");
@@ -24,6 +26,7 @@ export const getEspecialidades = async () => {
     }
 };
 
+//agrefar medico
 export const agregarMedico = async (medicoData) => {
     try {
         const response = await apiConexion.post("/doctores", medicoData);
@@ -38,7 +41,64 @@ export const agregarMedico = async (medicoData) => {
     }
 };
 
+//obtener doctor por id
+export const obtenerDoctorPorId = async (id) => {
+    try {
+        const response = await apiConexion.get(`/doctores/${id}`);
+        if (response.status === 200) {
+            return { success: true, data: response.data.data };
+        }
+        return { success: false, message: "No se pudo obtener la información del médico." };
+    } catch (error) {
+        console.error("Error en obtenerDoctorPorId:", error.response?.data || error.message);
+        return { success: false, message: "Error al cargar los datos del médico." };
+    }
+};
 
+
+// Obtener médico por ID
+export const listarDoctorPorId = async (id) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const res = await apiConexion.get(`/listardoctores/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return { success: true, data: res.data.data };
+  } catch (error) {
+    console.error("Error obtenerDoctorPorId:", error.response?.data || error.message);
+    return { success: false, message: "Error al obtener el médico" };
+  }
+};
+
+// Actualizar médico
+export const actualizarMedico = async (id, data) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const res = await apiConexion.put(`/doctores/${id}`, data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return { success: true, data: res.data };
+  } catch (error) {
+    console.error("Error actualizarMedico:", error.response?.data || error.message);
+    return { success: false, message: "Error al actualizar el médico" };
+  }
+};
+
+// Obtener especialidades
+export const listarEspecialidades = async () => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const res = await apiConexion.get(`/listarespecialidades`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return { success: true, data: res.data.data };
+  } catch (error) {
+    console.error("Error getEspecialidades:", error.response?.data || error.message);
+    return { success: false, message: "Error al cargar especialidades" };
+  }
+};
+
+//obtner doctores
 export const obtenerDoctores = async () => {
   try {
     const response = await apiConexion.get("/doctores");
@@ -52,6 +112,7 @@ export const obtenerDoctores = async () => {
   }
 };
 
+//buscar paciente por nombre
 export const buscarPacientePorNombreOCedula = async (query) => {
   try {
     const response = await apiConexion.get(`/pacientes/buscar`, {
@@ -70,6 +131,7 @@ export const buscarPacientePorNombreOCedula = async (query) => {
   }
 };
 
+//listar  docto
 export const listardoc = async () => {
   try {
     const response = await apiConexion.get("/listardoc");
@@ -98,7 +160,6 @@ export const buscarPacientePorDocumento = async (documento) => {
 };
 
 //creer cita
-
 export const crearCita = async (citaData) => {
   try {
     const response = await apiConexion.post("/citas", citaData);
@@ -115,7 +176,7 @@ export const crearCita = async (citaData) => {
   }
 };
 
-
+//obtner estaducsticas
 export const obtenerEstadisticasRecepcion = async () => {
   try {
     const response = await apiConexion.get("/recepcion/estadisticas");
@@ -127,6 +188,7 @@ export const obtenerEstadisticasRecepcion = async () => {
   }
 };
 
+//obtenner citas hoy
 export const obtenerCitasHoy = async () => {
   try {
     const token = await AsyncStorage.getItem("userToken");
@@ -140,7 +202,7 @@ export const obtenerCitasHoy = async () => {
     if (response.data.success) {
       return {
         success: true,
-        data: response.data.data, // las citas vienen aquí
+        data: response.data.data, 
       };
     } else {
       return {
@@ -157,6 +219,7 @@ export const obtenerCitasHoy = async () => {
   }
 };
 
+//editar perfil recepcion
 export const updateRecepcionistaPerfil = async (userData) => {
     try {
         const response = await apiConexion.put('/me/recepcionista', userData);
@@ -168,6 +231,7 @@ export const updateRecepcionistaPerfil = async (userData) => {
     }
 };
 
+//eliminar cuenta recepcionista
 export async function eliminarCuentaRecepcionista() {
     try {
         const token = await AsyncStorage.getItem("userToken");
@@ -216,6 +280,7 @@ export const changePassword = async (current_password, new_password) => {
     }
 };
 
+//acctualiza estado cita
 export const actualizarEstadoCita = async (id, estado) => {
   try {
     const response = await apiConexion.put(`/citas/${id}/estado`, { estado });
@@ -231,6 +296,8 @@ export const actualizarEstadoCita = async (id, estado) => {
   }
 };
 
+
+//eliminnar doctor
 export const eliminarDoctor = async (id) => {
   try {
     const response = await apiConexion.delete(`/doctores/${id}`);

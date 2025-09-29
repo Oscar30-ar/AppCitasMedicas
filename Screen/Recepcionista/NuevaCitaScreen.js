@@ -22,7 +22,7 @@ export default function NuevaCitaScreen() {
 
   const [cedulaPaciente, setCedulaPaciente] = useState("");
   const [pacienteId, setPacienteId] = useState(null);
-  const [pacienteNombre, setPacienteNombre] = useState(""); // 👈 nombre confirmado
+  const [pacienteNombre, setPacienteNombre] = useState("");
 
   const [doctorId, setDoctorId] = useState("");
   const [consultorio, setConsultorio] = useState("");

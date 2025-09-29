@@ -2,9 +2,10 @@ import React, { useState, useEffect, useContext, useMemo } from "react";
 import {View,Text,StyleSheet,FlatList,ActivityIndicator,TextInput,TouchableOpacity,Alert,} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
-import { obtenerMisPacientes } from "../../Src/Service/MedicoService"; // Asumimos que esta función existe
+import { obtenerMisPacientes } from "../../Src/Service/MedicoService";
 import { useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 // --- Componente para cada paciente en la lista ---
 const PatientCard = ({ paciente, theme, onPress }) => (
     <TouchableOpacity
@@ -35,7 +36,6 @@ export default function MisPacientesScreen() {
     useEffect(() => {
         const cargarPacientes = async () => {
             try {
-                // NOTA: Debes crear esta función en MedicoService.js y el endpoint en tu backend
                 const response = await obtenerMisPacientes();
                 if (response.success) {
                     setPacientes(response.data);
@@ -67,7 +67,6 @@ export default function MisPacientesScreen() {
     }, [searchTerm, pacientes]);
 
     const handlePatientPress = (paciente) => {
-        // Aquí puedes navegar al historial clínico del paciente
         navigation.navigate('HistorialPaciente', { paciente: paciente });
     };
 

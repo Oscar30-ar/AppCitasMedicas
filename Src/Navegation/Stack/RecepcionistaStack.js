@@ -8,6 +8,7 @@ import HistorialPacienteScreen from "../../../Screen/Medicos/HistorialPacienteSc
 import DetallePacienteScreen from "../../../Screen/Recepcionista/DetallesPacienteScreen";
 import GestionMedicosScreen from "../../../Screen/Recepcionista/GestionMedicosScreen";
 import AgregarMedicoScreen from "../../../Screen/Recepcionista/AgregarMedicoScreen";
+import EditarMedicoScreen from "../../../Screen/Recepcionista/EditarMedicoScreen";
 import EditarRecepcionistaScreen from "../../../Screen/Recepcionista/EditarRecepcionistaScreen";
 
 const Stack = createNativeStackNavigator();
@@ -61,6 +62,11 @@ export default function Recepcionista_Stack({ setUserToken }) {
                 options={{ title: "Agregar Nuevo Médico" }}
             />
 
+            <Stack.Screen
+                name="EditarMedico"
+                component={EditarMedicoScreen}
+                options={{ title: "Editar Médico" }}
+            />
             <Stack.Screen
                 name="EditarRecepcionista"
                 component={EditarRecepcionistaScreen}

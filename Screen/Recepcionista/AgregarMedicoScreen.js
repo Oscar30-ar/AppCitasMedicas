@@ -61,7 +61,7 @@ export default function AgregarMedicoScreen({ navigation }) {
         correo,
         clave,
         celular,
-        especialidades: [especialidadId], // Se envía como un array de IDs
+        especialidades: [especialidadId], 
       };
 
       const result = await agregarMedico(medicoData);

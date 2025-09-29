@@ -14,7 +14,6 @@ export default function EditarPacienteScreen({ navigation }) {
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [loadingUpdate, setLoadingUpdate] = useState(false);
 
-  // Estados del formulario inicializados a vacío/fecha actual
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [documento, setDocumento] = useState("");

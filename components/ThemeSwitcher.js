@@ -11,13 +11,13 @@ export default function ThemeSwitcher() {
       onPress={toggleTheme}
       style={[
         styles.button,
-        { backgroundColor: isDarkMode ? "#191a65ff" : "#000000ff" }, // 🔄 fondo cambia con el tema
+        { backgroundColor: isDarkMode ? "#191a65ff" : "#000000ff" }, 
       ]}
     >
       <Ionicons
         name={isDarkMode ? "sunny" : "moon"}
         size={28}
-        color={isDarkMode ? "#facc15" : "#ffffffff"} // 🌞 amarillo sol | 🌙 oscuro luna
+        color={isDarkMode ? "#facc15" : "#ffffffff"}
       />
     </TouchableOpacity>
   );

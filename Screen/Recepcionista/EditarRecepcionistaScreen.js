@@ -197,7 +197,7 @@ export default function EditarRecepcionistaScreen({ navigation }) {
           value={documento}
           keyboardType="numeric"
           onChangeText={setDocumento}
-          editable={false} // El documento no debería ser editable
+          editable={false} 
         />
         <TextInput
           style={[styles.input, {backgroundColor: theme.background, color: theme.text, borderColor: theme.border}]}

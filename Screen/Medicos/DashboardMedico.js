@@ -7,8 +7,8 @@ import { useNavigation } from "@react-navigation/native";
 // Contextos y servicios
 import { ThemeContext } from "../../components/ThemeContext";
 import apiConexion from "../../Src/Service/Conexion";
-import { obtenerEstadisticas, obtenerCitasHoy } from "../../Src/Service/MedicoService";
-import {logout} from "../../Src/Service/AuthService";
+import { obtenerEstadisticas, obtenerMisCitas } from "../../Src/Service/MedicoService";
+import { logout } from "../../Src/Service/AuthService";
 const StatCard = ({ title, value, iconName, iconColor, theme }) => {
     const stylesCard = StyleSheet.create({
         card: {
@@ -57,66 +57,6 @@ const StatCard = ({ title, value, iconName, iconColor, theme }) => {
 };
 
 
-function AppointmentItem({ appointment, theme, navigation }) {
-
-    // Función que define el color según el estado
-    const getStatusStyle = (status) => {
-        const lower = status?.toLowerCase?.() || "";
-        switch (lower) {
-            case "confirmada":
-                return { backgroundColor: "#10b981", textColor: "#ffffff" }; 
-            case "pendiente":
-                return { backgroundColor: "#facc15", textColor: "#000000" }; 
-            case "cancelada":
-                return { backgroundColor: "#ef4444", textColor: "#ffffff" };
-            default:
-                return { backgroundColor: theme.border, textColor: theme.text };
-        }
-    };
-
-    const { backgroundColor, textColor } = getStatusStyle(appointment.estado);
-
-    return (
-        <View
-            style={[
-                styles.appointmentCard,
-                { backgroundColor: theme.cardBackground, borderColor: theme.border },
-            ]}
-        >
-            <View style={styles.infoContainer}>
-                {/* Nombre del paciente */}
-                <Text style={[styles.patientName, { color: theme.text }]}>
-                    {appointment.nombrePaciente}
-                    <Text style={{ fontWeight: "normal", color: theme.subtitle, fontSize: 14 }}>
-                        {" "}
-                        ({appointment.tipoConsulta || "Consulta"})
-                    </Text>
-                </Text>
-
-
-                {/* Hora */}
-                <View style={{ flexDirection: "row", alignItems: "center", marginTop: 5 }}>
-                    <Ionicons name="time-outline" size={14} color={theme.subtitle} />
-                    <Text style={[styles.timeText, { color: theme.subtitle }]}>
-                        {appointment.hora}
-                    </Text>
-                </View>
-            </View>
-
-            {/* Estado */}
-            <View style={styles.buttonsContainer}>
-                
-                <View style={[styles.statusChip, { backgroundColor }]}>
-                    <Text style={[styles.statusText, { color: textColor }]}>
-                        {appointment.estado?.toUpperCase()}
-                    </Text>
-                </View>
-            </View>
-        </View>
-    );
-}
-
-
 export default function DashboardMedico({ setUserToken }) {
     const { theme } = useContext(ThemeContext);
     const navigation = useNavigation();
@@ -131,26 +71,23 @@ export default function DashboardMedico({ setUserToken }) {
     useEffect(() => {
         const cargarDatos = async () => {
             try {
-                const token = await AsyncStorage.getItem("userToken");
                 const role = await AsyncStorage.getItem("rolUser");
 
-                if (!token || !role) {
+                if (!role) {
                     Alert.alert("Sesión no encontrada", "Redirigiendo al login...");
-                    await AsyncStorage.multiRemove(["userToken", "rolUser"]);
                     setUserToken(null);
                     return;
                 }
 
-                // --- PERFIL ---
                 let url = "";
-                if (role === "paciente") url = "/me/paciente";
                 if (role === "doctor") url = "/me/doctor";
-                if (role === "recepcionista") url = "/me/recepcionista";
-                const response = await apiConexion.get(url, { headers: { Authorization: `Bearer ${token}` } });
+                const response = await apiConexion.get(url);
                 setUsuario(response.data.user || response.data);
 
+                await new Promise(resolve => setTimeout(resolve, 300)); 
+
                 // --- CITAS HOY ---
-                const responseCitas = await obtenerCitasHoy();
+                const responseCitas = await obtenerMisCitas();
                 if (responseCitas.success) setCitasHoy(responseCitas.data);
 
                 // --- ESTADÍSTICAS ---
@@ -158,7 +95,13 @@ export default function DashboardMedico({ setUserToken }) {
                 setStats(stats);
             } catch (error) {
                 console.error("Error cargando datos:", error);
-                Alert.alert("Error", "No se pudieron cargar los datos. Intenta nuevamente.");
+                if (error.response?.status !== 401) {
+                    Alert.alert(
+                        "Error", 
+                        "No se pudieron cargar los datos. Por favor, inicia sesión de nuevo.",
+                        [{ text: "Aceptar", onPress: () => setUserToken(null) }]
+                    );
+                }
             } finally {
                 setLoading(false);
             }
@@ -172,39 +115,35 @@ export default function DashboardMedico({ setUserToken }) {
     };
 
     const handleConfirmLogout = async () => {
-    setShowLogoutModal(false);
-    
-    try {
-        await logout();
+        setShowLogoutModal(false);
 
-        setUserToken(null); //
-        Alert.alert(
-            "¡Éxito!",
-            "Has cerrado sesión correctamente.",
-            [{ text: "Aceptar" }],
-            { cancelable: false }
-        );
+        try {
+            await logout();
 
-    } catch (error) {
-        console.error("Error al cerrar sesión:", error);
-        Alert.alert("Error", "No se pudo cerrar la sesión. Inténtalo de nuevo.");
-    }
-};
+            setUserToken(null); //
+            Alert.alert(
+                "¡Éxito!",
+                "Has cerrado sesión correctamente.",
+                [{ text: "Aceptar" }],
+                { cancelable: false }
+            );
+
+        } catch (error) {
+            console.error("Error al cerrar sesión:", error);
+            Alert.alert("Error", "No se pudo cerrar la sesión. Inténtalo de nuevo.");
+        }
+    };
 
     const handleCancelLogout = () => {
         setShowLogoutModal(false);
     };
 
 
-    // 🔸 Navegación rápida (botones principales)
+    // Navegación rápida (botones principales)
 
     const navigateToScreen = (screen) => {
-        const mensajes = {
-            Recetas: "Implementar: Gestión de Recetas",
-        };
-
-        if (screen === "MisPacientes") {
-            navigation.navigate("MisPacientes");
+        if (screen === "MisPacientes" || screen === "AgendaHoy") {
+            navigation.navigate(screen);
         } else if (mensajes[screen]) {
             Alert.alert("Navegación", mensajes[screen]);
         } else {
@@ -272,38 +211,13 @@ export default function DashboardMedico({ setUserToken }) {
             </View>
 
 
-            {/* Agenda del día */}
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Agenda de Hoy - {today}</Text>
-            <View style={styles.appointmentsContainer}>
-                {citasHoy.length > 0 ? (
-                    citasHoy.map((cita) => (
-                        <AppointmentItem
-                            key={cita.id}
-                            appointment={{
-                                nombrePaciente: `${cita.pacientes?.nombre} ${cita.pacientes?.apellido}`,
-                                tipoConsulta: cita.consultorio,
-                                hora: cita.hora,
-                                estado: cita.estado,
-                                paciente: cita.pacientes,
-                            }}
-                            theme={theme}
-                            navigation={navigation}
-                        />
-                    ))
-                ) : (
-                    <Text style={{ color: theme.subtitle, textAlign: "center", padding: 15 }}>
-                        No tienes citas agendadas para hoy.
-                    </Text>
-                )}
-            </View>
-
 
             {/* Herramientas rápidas */}
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Herramientas Rápidas</Text>
             <View style={styles.actionsGrid}>
                 {[
-                    { icon: "people-outline", title: "Mis Pacientes", subtitle: "Lista completa", screen: "MisPacientes" },
-                    { icon: "document-text-outline", title: "Recetas", subtitle: "Gestionar prescripciones", screen: "Recetas" },
+                    { icon: "people-outline", title: "Mis Pacientes", subtitle: "Ver lista completa", screen: "MisPacientes" },
+                    { icon: "calendar-outline", title: "Agenda de Hoy", subtitle: "Ver citas del día", screen: "AgendaHoy" },
                 ].map((item, index) => (
                     <TouchableOpacity
                         key={index}
@@ -349,7 +263,7 @@ export default function DashboardMedico({ setUserToken }) {
     );
 }
 
-// 🔹 Estilos globales del Dashboard
+//  Estilos globales del Dashboard
 const styles = StyleSheet.create({
     container: { flexGrow: 1, padding: 20 },
     center: { justifyContent: "center", alignItems: "center" },
@@ -469,7 +383,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     attendBtn: {
-        backgroundColor: "#2563eb", // Azul primario
+        backgroundColor: "#2563eb",
     },
     attendText: {
         color: "#fff",

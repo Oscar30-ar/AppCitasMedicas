@@ -40,7 +40,6 @@ export default function HistorialPacienteScreen({ route }) {
             if (!paciente?.id) return;
 
             try {
-                // NOTA: Debes crear esta función y el endpoint en tu backend
                 const result = await obtenerHistorialPaciente(paciente.id);
 
                 if (result.success && Array.isArray(result.data)) {

@@ -5,10 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 //Estadisticas/tarjetas
 export const obtenerEstadisticas = async () => {
   try {
-    const token = await AsyncStorage.getItem("userToken");
-    const response = await apiConexion.get("/doctor/estadisticas", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await apiConexion.get("/doctor/estadisticas");
     return response.data.data;
   } catch (error) {
     console.error("Error obteniendo estadísticas:", error.response?.data || error.message);
@@ -16,44 +13,34 @@ export const obtenerEstadisticas = async () => {
   }
 };
 
-
-//Citas hoy 
-
-export const obtenerCitasHoy = async () => {
+export const obtenerMisCitas = async () => {
   try {
     const token = await AsyncStorage.getItem("userToken");
 
-    const response = await apiConexion.get("/citas/hoy", {
+    const res = await apiConexion.get("/doctor/citas", {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (response.data.success) {
-      return { success: true, data: response.data.data };
-    }
-
-    return { success: false, message: "No se pudieron cargar las citas de hoy." };
+    return { success: true, data: res.data.data };
   } catch (error) {
-    console.error("Error al obtener citas de hoy:", error.response?.data || error.message);
-    return { success: false, message: "Error al conectar con el servidor." };
+    console.error("Error obteniendo citas:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error de conexión" };
   }
 };
 
 //Mis pacientes
 export const obtenerMisPacientes = async () => {
     try {
-        
         const response = await apiConexion.get("/doctor/pacientes");
 
-        // Si la respuesta HTTP es 200 (OK)
         if (response.status === 200) {
             return { 
                 success: true, 
-                data: response.data.data, // Asegúrate que 'response.data.pacientes' es la lista
+                data: response.data.data,
                 message: "Pacientes cargados." 
             };
         } 
         
-        // Manejo de otros códigos de estado exitosos pero no esperados
         return { 
             success: false, 
             data: [], 
@@ -132,14 +119,9 @@ export const updateMedicoPerfil = async (userData) => {
     }
 };
 
+//eliminar cuenta
 export async function eliminarCuentaMedico() {
     try {
-        const token = await AsyncStorage.getItem("userToken");
-        
-        if (!token) {
-            return { success: false, message: "No hay sesión activa." };
-        }
-
         const response = await apiConexion.delete('eliminarCuenta');
 
         if (response.data && response.data.success) {

@@ -4,6 +4,7 @@ import CambiarContrasenaMedico from "../../../Screen/Medicos/CambiarContrasenaMe
 import EditarMedicoScreen from "../../../Screen/Medicos/EditarMedicoScreen";
 import MisPacientesScreen from "../../../Screen/Medicos/MisPacientesScreen";
 import HistorialPacienteScreen from "../../../Screen/Medicos/HistorialPacienteScreen";
+import AgendaHoyMedicoScreen from "../../../Screen/Medicos/AgendaHoyMedicoScreen";
 
 
 const Stack = createStackNavigator();
@@ -31,10 +32,16 @@ export default function Medico_Stack({ setUserToken }) {
                 component={MisPacientesScreen}
                 options={{ title: "Mis Pacientes" }}
             />
+
             <Stack.Screen
                 name="HistorialPaciente"
                 component={HistorialPacienteScreen}
                 options={{ title: "Historial del Paciente" }}
+            />
+            <Stack.Screen
+                name="AgendaHoy"
+                component={AgendaHoyMedicoScreen}
+                options={{ title: "Agenda de Hoy" }}
             />
 
         </Stack.Navigator>
