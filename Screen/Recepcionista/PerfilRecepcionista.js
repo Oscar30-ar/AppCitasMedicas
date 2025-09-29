@@ -89,7 +89,7 @@ export default function PerfilRecepcionista() {
       {/* Botón editar */}
       <BottonComponent
         title="Editar Perfil"
-        onPress={() => navigation.navigate("EditarMedico")}
+        onPress={() => navigation.navigate("EditarRecepcionista")}
         style={[styles.editButton, { backgroundColor: theme.primary }]}
       />
 

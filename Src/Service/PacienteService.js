@@ -13,20 +13,6 @@ export const registrarPaciente = async (userData) => {
     }
 };
 
-// Buscar pacientes (para recepcionista)
-export const buscarPacientes = async (query) => {
-    try {
-        const response = await apiConexion.get(`/pacientes/buscar?q=${query}`);
-        if (response.data.success) {
-            return { success: true, data: response.data.data };
-        }
-        return { success: false, message: "No se encontraron pacientes." };
-    } catch (error) {
-        console.error("Error en buscarPacientes:", error.response?.data || error.message);
-        return { success: false, message: "Error al conectar con el servidor." };
-    }
-};
-
 
 //Editar Perfil Paciente
 export const updatePacientePerfil = async (userData) => {

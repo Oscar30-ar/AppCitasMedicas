@@ -2,7 +2,13 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import DashboardRecepcionista from "../../../Screen/Recepcionista/DashboardRecepcionista";
 import CitasHoyScreen from "../../../Screen/Recepcionista/CitasHoyScreen";
 import RegistroPacienteRecepcionista from "../../../Screen/Recepcionista/RegistroPacienteRecepcionista";
-import GestionCitasScreen from "../../../Screen/Recepcionista/GestionCitasScreen";
+import NuevaCitaScreen from "../../../Screen/Recepcionista/NuevaCitaScreen";
+import BuscarPacienteScreen from "../../../Screen/Recepcionista/BuscarPacienteScreen";
+import HistorialPacienteScreen from "../../../Screen/Medicos/HistorialPacienteScreen";
+import DetallePacienteScreen from "../../../Screen/Recepcionista/DetallesPacienteScreen";
+import GestionMedicosScreen from "../../../Screen/Recepcionista/GestionMedicosScreen";
+import AgregarMedicoScreen from "../../../Screen/Recepcionista/AgregarMedicoScreen";
+import EditarRecepcionistaScreen from "../../../Screen/Recepcionista/EditarRecepcionistaScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -25,9 +31,40 @@ export default function Recepcionista_Stack({ setUserToken }) {
                 options={{ title: "Registrar Nuevo Paciente" }}
             />
             <Stack.Screen
-                name="GestionCitas"
-                component={GestionCitasScreen}
+                name="NuevaCita"
+                component={NuevaCitaScreen}
                 options={{ title: "Agendar Nueva Cita" }}
+            />
+            <Stack.Screen
+                name="BuscarPaciente"
+                component={BuscarPacienteScreen}
+                options={{ title: "Buscar Paciente" }}
+            />
+            <Stack.Screen
+                name="HistorialPaciente"
+                component={HistorialPacienteScreen}
+                options={{ title: "Historial del Paciente" }}
+            />
+            <Stack.Screen
+                name="DetallePaciente"
+                component={DetallePacienteScreen}
+                options={{ title: "Historial del Paciente" }}
+            />
+            <Stack.Screen
+                name="GestionMedicos"
+                component={GestionMedicosScreen}
+                options={{ title: "Gestión de Médicos" }}
+            />
+            <Stack.Screen
+                name="AgregarMedico"
+                component={AgregarMedicoScreen}
+                options={{ title: "Agregar Nuevo Médico" }}
+            />
+
+            <Stack.Screen
+                name="EditarRecepcionista"
+                component={EditarRecepcionistaScreen}
+                options={{ title: "Editar Perfil" }}
             />
 
         </Stack.Navigator>
