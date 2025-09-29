@@ -52,6 +52,24 @@ export const obtenerDoctores = async () => {
   }
 };
 
+export const buscarPacientePorNombreOCedula = async (query) => {
+  try {
+    const response = await apiConexion.get(`/pacientes/buscar`, {
+      params: { q: query },
+    });
+    console.log("🩺 Resultado búsqueda:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error en buscarPacientePorNombreOCedula:", error);
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Error al buscar pacientes por nombre o cédula.",
+    };
+  }
+};
+
 export const listardoc = async () => {
   try {
     const response = await apiConexion.get("/listardoc");
@@ -196,4 +214,33 @@ export const changePassword = async (current_password, new_password) => {
             message: errorMessage 
         };
     }
+};
+
+export const actualizarEstadoCita = async (id, estado) => {
+  try {
+    const response = await apiConexion.put(`/citas/${id}/estado`, { estado });
+    return response.data;
+  } catch (error) {
+    console.error("Error en actualizarEstadoCita:", error);
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Error al actualizar el estado de la cita.",
+    };
+  }
+};
+
+export const eliminarDoctor = async (id) => {
+  try {
+    const response = await apiConexion.delete(`/doctores/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error en eliminarDoctor:", error);
+    return {
+      success: false,
+      message:
+        error.response?.data?.message || "Error al eliminar el doctor.",
+    };
+  }
 };

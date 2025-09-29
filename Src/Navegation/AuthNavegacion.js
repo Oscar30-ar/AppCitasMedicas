@@ -1,46 +1,59 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Login  from "../../Screen/Auth/login";
-import Registro  from "../../Screen/Auth/registroPaciente";
+import Login from "../../Screen/Auth/login";
+import Registro from "../../Screen/Auth/registroPaciente";
+import ForgotPasswordScreen from "../../Screen/Auth/ForgotPasswordScreen";
+import ResetPasswordScreen from "../../Screen/Auth/ResetPasswordScreen";
 import DashboardComponent from "../../Screen/Pacientes/DashboardPaciente";
 import DashboardMedico from "../../Screen/Medicos/DashboardMedico";
 import DashboardRecepcionista from "../../Screen/Recepcionista/DashboardRecepcionista";
 
 const Stack = createNativeStackNavigator();
 
-export default function AuthNavegacion({ setUserToken, setUserRole }){
-    return(
+export default function AuthNavegacion({ setUserToken, setUserRole }) {
+    return (
         <Stack.Navigator>
             <Stack.Screen
                 name="Login"
                 children={(props) => (
-                    <Login 
-                        {...props} 
-                        setUserToken={setUserToken} 
-                        setUserRole={setUserRole}  
+                    <Login
+                        {...props}
+                        setUserToken={setUserToken}
+                        setUserRole={setUserRole}
                     />
                 )}
-                options={{title:"Iniciar Sesión"}}
+                options={{ title: "Iniciar Sesión" }}
             />
             <Stack.Screen
                 name="DashboardPaciente"
                 component={DashboardComponent}
-                options={{title:"Dashboard Paciente"}}
+                options={{ title: "Dashboard Paciente" }}
             />
             <Stack.Screen
                 name="DashboardMedico"
                 component={DashboardMedico}
-                options={{title:"Dashboard Médico"}}
+                options={{ title: "Dashboard Médico" }}
             />
             <Stack.Screen
                 name="DashboardRecepcionista"
                 component={DashboardRecepcionista}
-                options={{title:"Dashboard Recepcionista"}}
+                options={{ title: "Dashboard Recepcionista" }}
             />
             <Stack.Screen
                 name="Registro"
                 component={Registro}
-                options={{title:"Registrarse"}}
+                options={{ title: "Registrarse" }}
             />
+            <Stack.Screen
+                name="ForgotPasswordScreen"
+                component={ForgotPasswordScreen}
+                options={{ title: 'Restablecer Contraseña' }}
+            />
+            <Stack.Screen
+                name="ResetPassword"
+                component={ResetPasswordScreen}
+                options={{ title: "Restablecer Contraseña" }}
+            />
+
         </Stack.Navigator>
     )
 }

@@ -41,9 +41,6 @@ export const obtenerCitasHoy = async () => {
 //Mis pacientes
 export const obtenerMisPacientes = async () => {
     try {
-        // NOTA: Usualmente, el ID del médico se obtiene del token JWT
-        // almacenado en el AsyncStorage o el contexto de autenticación.
-        // Aquí asumimos que apiClient ya incluye el token en los headers.
         
         const response = await apiConexion.get("/doctor/pacientes");
 

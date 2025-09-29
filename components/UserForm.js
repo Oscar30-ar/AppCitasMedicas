@@ -60,7 +60,7 @@ const UserForm = ({
       {/* Olvidé mi contraseña */}
       <TouchableOpacity
         style={styles.forgotBtn}
-        onPress={() => console.log("Forgot password pressed")}
+        onPress={() => navigation.navigate("ForgotPasswordScreen")}
       >
         <Text style={[styles.forgotText, { color: theme.primary }]}>
           ¿Olvidaste tu contraseña?

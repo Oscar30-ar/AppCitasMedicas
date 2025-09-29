@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
-// import { requestPasswordReset } from "../../Src/Service/AuthService"; // You'll need to create this service function
+import { requestPasswordReset } from "../../Src/Service/AuthService";
 
 export default function ForgotPasswordScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
@@ -19,12 +19,13 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleResetPassword = async () => {
+    // ✅ Validar que haya un correo
     if (!email) {
       Alert.alert("Error", "Por favor ingresa tu correo electrónico.");
       return;
     }
 
-    // Basic email format validation
+    // ✅ Validar formato del correo
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       Alert.alert("Error", "Por favor ingresa un correo electrónico válido.");
@@ -32,27 +33,33 @@ export default function ForgotPasswordScreen({ navigation }) {
     }
 
     setLoading(true);
+
     try {
-      // TODO: Implement the actual API call to your backend for password reset
-      // Example:
-      // const result = await requestPasswordReset(email);
-      // if (result.success) {
-      //   Alert.alert("Éxito", result.message || "Se ha enviado un enlace de restablecimiento de contraseña a tu correo electrónico.");
-      //   navigation.goBack(); // Or navigate to a success screen
-      // } else {
-      //   Alert.alert("Error", result.message || "No se pudo procesar la solicitud. Inténtalo de nuevo.");
-      // }
+      // ✅ Llamar correctamente a la API
+      const result = await requestPasswordReset({ correo: email });
 
-      // --- Placeholder for demonstration ---
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call delay
-      Alert.alert(
-        "Éxito",
-        "Si tu correo electrónico está registrado, recibirás un enlace para restablecer tu contraseña."
-      );
-      setEmail("");
-      navigation.goBack();
-      // --- End Placeholder ---
-
+      if (result.success) {
+        Alert.alert(
+          "Éxito",
+          result.message ||
+            "Se ha enviado un enlace de restablecimiento de contraseña a tu correo electrónico.",
+          [
+            {
+              text: "Aceptar",
+              onPress: () => {
+                if (navigation.canGoBack()) {
+                  navigation.goBack();
+                } else {
+                  navigation.navigate("Login");
+                }
+              },
+            },
+          ]
+        );
+        setEmail("");
+      } else {
+        Alert.alert("Error", result.message || "No se pudo procesar la solicitud.");
+      }
     } catch (error) {
       console.error("Error inesperado al solicitar restablecimiento de contraseña:", error);
       Alert.alert("Error", "Ocurrió un error inesperado. Inténtalo de nuevo.");
@@ -92,11 +99,13 @@ export default function ForgotPasswordScreen({ navigation }) {
           onPress={handleResetPassword}
           disabled={loading}
         >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text style={styles.buttonText}>Restablecer Contraseña</Text>
-          )}
+          {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Enviar</Text>}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")}>
+          <Text style={{ color: theme.primary, textAlign: "center", marginTop: 15 }}>
+            Ya tengo el token
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -104,15 +113,8 @@ export default function ForgotPasswordScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: 30,
-    marginTop: 50,
-  },
+  container: { flex: 1, padding: 20 },
+  header: { alignItems: "center", marginBottom: 30, marginTop: 50 },
   logoContainer: {
     borderRadius: 25,
     width: 50,
@@ -126,19 +128,9 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  form: {
-    flex: 1,
-  },
+  title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
+  subtitle: { fontSize: 16, textAlign: "center", marginBottom: 20 },
+  form: { flex: 1 },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -149,20 +141,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "transparent",
   },
-  input: {
-    flex: 1,
-    marginLeft: 10,
-    fontSize: 16,
-  },
-  button: {
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 20,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
+  input: { flex: 1, marginLeft: 10, fontSize: 16 },
+  button: { paddingVertical: 15, borderRadius: 10, alignItems: "center", marginTop: 20 },
+  buttonText: { color: "white", fontSize: 18, fontWeight: "bold" },
 });

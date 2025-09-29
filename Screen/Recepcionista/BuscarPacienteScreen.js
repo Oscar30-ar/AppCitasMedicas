@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
-import { buscarPacientesNombre } from "../../Src/Service/RecepcionService";
+import { buscarPacientePorNombreOCedula } from "../../Src/Service/RecepcionService";
 import { useNavigation } from "@react-navigation/native";
 
 const PatientCard = ({ paciente, theme, onPress }) => (
@@ -41,24 +41,27 @@ export default function BuscarPacienteScreen() {
     const [isSearching, setIsSearching] = useState(false);
 
     useEffect(() => {
-        if (searchTerm.trim().length < 3) {
-            setResults([]);
-            return;
-        }
+  if (searchTerm.trim().length < 3) {
+    setResults([]);
+    return;
+  }
 
-        const debounce = setTimeout(async () => {
-            setIsSearching(true);
-            const response = await buscarPacientesNombre(searchTerm);
-            if (response.success) {
-                setResults(response.data);
-            } else {
-                Alert.alert("Búsqueda", response.message || "No se encontraron pacientes.");
-            }
-            setIsSearching(false);
-        }, 500);
+  const debounce = setTimeout(async () => {
+    console.log("🔍 Buscando:", searchTerm);
+    setIsSearching(true);
+    const response = await buscarPacientePorNombreOCedula(searchTerm);
+    console.log("📦 Respuesta backend:", response);
+    if (response.success) {
+      setResults(response.data);
+    } else {
+      Alert.alert("Búsqueda", response.message || "No se encontraron pacientes.");
+    }
+    setIsSearching(false);
+  }, 500);
 
-        return () => clearTimeout(debounce);
-    }, [searchTerm]);
+  return () => clearTimeout(debounce);
+}, [searchTerm]);
+
 
     const handlePatientPress = (paciente) => {
         navigation.navigate('DetallePaciente', { paciente });
