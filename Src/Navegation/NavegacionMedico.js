@@ -5,12 +5,11 @@ import Feather from "@expo/vector-icons/Feather";
 import { useContext } from "react";
 import { ThemeContext } from "../../components/ThemeContext";
 import { createStackNavigator } from "@react-navigation/stack";
-import PerfilScreenMedico from "../../Screen/Medicos/perfilScreenMedico";
 import EditarMedicoScreen from "../../Screen/Medicos/EditarMedicoScreen";
-import configuracion_Medico from "../../Screen/Medicos/configuracion_Medico";
 import CambiarContrasenaMedico from "../../Screen/Medicos/CambiarContrasenaMedico";
 import Medico_Stack from "./Stack/MedicosStack";
-import DashboardMedico from "../../Screen/Medicos/DashboardMedico";
+import PerfilMedicoScreen from "../../Screen/Medicos/perfilScreenMedico";
+import ConfiguracionMedicoScreen from "../../Screen/Medicos/configuracion_Medico"; 
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -19,7 +18,7 @@ function PerfilStackWrapperMedico({ setUserToken }) {
         <Stack.Navigator>
             <Stack.Screen
                 name="PerfilMainMedico"
-                children={(props) => <DashboardMedico {...props} setUserToken={setUserToken} />}
+                children={(props) => <PerfilMedicoScreen {...props} setUserToken={setUserToken} />}
                 options={{
                     title: "Mi Perfil", 
                     headerShown: true, 
@@ -39,7 +38,7 @@ function ConfiguracionStackWrapperMedico({ setUserToken }) {
         <Stack.Navigator>
             <Stack.Screen
                 name="ConfiguracionMainMedico"
-                children={(props) => <configuracion_Medico {...props} setUserToken={setUserToken} />}
+                children={(props) => <ConfiguracionMedicoScreen {...props} setUserToken={setUserToken} />}
                 options={{ title: "Configuración", headerShown: true }}
             />
 

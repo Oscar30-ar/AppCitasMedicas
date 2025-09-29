@@ -13,6 +13,20 @@ export const registrarPaciente = async (userData) => {
     }
 };
 
+// Buscar pacientes (para recepcionista)
+export const buscarPacientes = async (query) => {
+    try {
+        const response = await apiConexion.get(`/pacientes/buscar?q=${query}`);
+        if (response.data.success) {
+            return { success: true, data: response.data.data };
+        }
+        return { success: false, message: "No se encontraron pacientes." };
+    } catch (error) {
+        console.error("Error en buscarPacientes:", error.response?.data || error.message);
+        return { success: false, message: "Error al conectar con el servidor." };
+    }
+};
+
 
 //Editar Perfil Paciente
 export const updatePacientePerfil = async (userData) => {
@@ -52,31 +66,6 @@ export const ProximasCitas = async () => {
         return { 
             success: false, 
             message: "No se pudieron cargar las próximas citas." 
-        };
-    }
-};
-
-//Cambiar contraseña 
-export const CambiarContraseña  = async (current_password, new_password) => {
-    try {
-        const response = await apiConexion.post('/change-password', {
-            current_password,
-            new_password,
-            new_password_confirmation: new_password,
-        });
-
-        return { 
-            success: true, 
-            message: response.data.message || "Contraseña cambiada correctamente." 
-        };
-    } catch (error) {
-        console.error("Error en CambiarContraseña service:", error);
-        
-        // El interceptor de apiConexion ya maneja errores 401
-        const errorMessage = error.response?.data?.message || "Error al cambiar la contraseña. Verifica la contraseña actual.";
-        return { 
-            success: false, 
-            message: errorMessage 
         };
     }
 };

@@ -6,7 +6,6 @@ import { useNavigation } from "@react-navigation/native";
 
 // Contextos y servicios
 import { ThemeContext } from "../../components/ThemeContext";
-import ThemeSwitcher from "../../components/ThemeSwitcher";
 import apiConexion from "../../Src/Service/Conexion";
 import { obtenerEstadisticas, obtenerCitasHoy } from "../../Src/Service/MedicoService";
 import {logout} from "../../Src/Service/AuthService";
@@ -19,7 +18,7 @@ const StatCard = ({ title, value, iconName, iconColor, theme }) => {
             backgroundColor: theme.cardBackground,
             alignItems: "flex-start",
             justifyContent: "center",
-            shadowColor: "#000",
+            shadowColor: "#ff0000ff",
             shadowOffset: { width: 0, height: 1 },
             shadowOpacity: 0.1,
             shadowRadius: 2,
@@ -60,16 +59,16 @@ const StatCard = ({ title, value, iconName, iconColor, theme }) => {
 
 function AppointmentItem({ appointment, theme, navigation }) {
 
-    // 🎨 Función que define el color según el estado
+    // Función que define el color según el estado
     const getStatusStyle = (status) => {
         const lower = status?.toLowerCase?.() || "";
         switch (lower) {
             case "confirmada":
-                return { backgroundColor: "#10b981", textColor: "#ffffff" }; // Verde
+                return { backgroundColor: "#10b981", textColor: "#ffffff" }; 
             case "pendiente":
-                return { backgroundColor: "#facc15", textColor: "#000000" }; // Amarillo
+                return { backgroundColor: "#facc15", textColor: "#000000" }; 
             case "cancelada":
-                return { backgroundColor: "#ef4444", textColor: "#ffffff" }; // Rojo
+                return { backgroundColor: "#ef4444", textColor: "#ffffff" };
             default:
                 return { backgroundColor: theme.border, textColor: theme.text };
         }
@@ -94,12 +93,6 @@ function AppointmentItem({ appointment, theme, navigation }) {
                     </Text>
                 </Text>
 
-                {/* Estado */}
-                <View style={[styles.statusChip, { backgroundColor }]}>
-                    <Text style={[styles.statusText, { color: textColor }]}>
-                        {appointment.estado?.toUpperCase()}
-                    </Text>
-                </View>
 
                 {/* Hora */}
                 <View style={{ flexDirection: "row", alignItems: "center", marginTop: 5 }}>
@@ -110,23 +103,14 @@ function AppointmentItem({ appointment, theme, navigation }) {
                 </View>
             </View>
 
-            {/* Botones de acción */}
+            {/* Estado */}
             <View style={styles.buttonsContainer}>
-                <TouchableOpacity
-                    style={[styles.actionButton, styles.historyBtn, { backgroundColor: theme.border }]}
-                    onPress={() =>
-                        Alert.alert("Historial", `Ver historial de ${appointment.nombrePaciente}`)
-                    }
-                >
-                    <Text style={[styles.historyText, { color: theme.text }]}>Ver Historial</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.actionButton, styles.attendBtn, { backgroundColor: theme.primary }]}
-                    onPress={() => Alert.alert("Atender", `Atendiendo a ${appointment.nombrePaciente}`)}
-                >
-                    <Text style={styles.attendText}>Atender</Text>
-                </TouchableOpacity>
+                
+                <View style={[styles.statusChip, { backgroundColor }]}>
+                    <Text style={[styles.statusText, { color: textColor }]}>
+                        {appointment.estado?.toUpperCase()}
+                    </Text>
+                </View>
             </View>
         </View>
     );
@@ -188,26 +172,24 @@ export default function DashboardMedico({ setUserToken }) {
     };
 
     const handleConfirmLogout = async () => {
-        setShowLogoutModal(false);
-        try {
-            await logout();
-            Alert.alert(
-                "¡Éxito!",
-                "Has cerrado sesión correctamente.",
-                [
-                    {
-                        text: "Aceptar",
-                        onPress: () => {
-                            setUserToken(null);
-                        }
-                    }
-                ],
-                { cancelable: false }
-            );
-        } catch (error) {
-            console.error("Error al cerrar sesión:", error);
-        }
-    };
+    setShowLogoutModal(false);
+    
+    try {
+        await logout();
+
+        setUserToken(null); //
+        Alert.alert(
+            "¡Éxito!",
+            "Has cerrado sesión correctamente.",
+            [{ text: "Aceptar" }],
+            { cancelable: false }
+        );
+
+    } catch (error) {
+        console.error("Error al cerrar sesión:", error);
+        Alert.alert("Error", "No se pudo cerrar la sesión. Inténtalo de nuevo.");
+    }
+};
 
     const handleCancelLogout = () => {
         setShowLogoutModal(false);
@@ -218,16 +200,13 @@ export default function DashboardMedico({ setUserToken }) {
 
     const navigateToScreen = (screen) => {
         const mensajes = {
-            MisPacientes: "Implementar: Ir a Mis Pacientes",
-            Reportes: "Implementar: Ir a Reportes Médicos",
             Recetas: "Implementar: Gestión de Recetas",
-            Horarios: "Implementar: Gestión de Horarios",
         };
 
-        if (mensajes[screen]) {
+        if (screen === "MisPacientes") {
+            navigation.navigate("MisPacientes");
+        } else if (mensajes[screen]) {
             Alert.alert("Navegación", mensajes[screen]);
-        } else if (screen === "NuevaCita") {
-            navigation.navigate("NuevaCita");
         } else {
             navigation.navigate(screen);
         }
@@ -263,7 +242,6 @@ export default function DashboardMedico({ setUserToken }) {
                 </View>
 
                 <View style={styles.headerIcons}>
-                    <ThemeSwitcher />
                     <TouchableOpacity onPress={() => setShowLogoutModal(true)} style={styles.logoutBtn}>
                         <Ionicons name="log-out-outline" size={24} color={theme.text} />
                     </TouchableOpacity>
@@ -281,8 +259,7 @@ export default function DashboardMedico({ setUserToken }) {
 
                 <View style={styles.doctorInfo}>
                     <Text style={[styles.doctorDetail, { color: theme.subtitle }]}>
-                        <Ionicons name="medical-outline" size={14} color={theme.subtitle} /> Especialidad:{" "}
-                        {usuario?.especialidad}
+                        <Ionicons name="medical-outline" size={14} color={theme.subtitle} /> Un día más al servicio de la salud. Recuerde el impacto profundo que tiene su entrega y compasión. Le deseamos una jornada de éxito.
                     </Text>
                 </View>
             </View>
@@ -307,6 +284,7 @@ export default function DashboardMedico({ setUserToken }) {
                                 tipoConsulta: cita.consultorio,
                                 hora: cita.hora,
                                 estado: cita.estado,
+                                paciente: cita.pacientes,
                             }}
                             theme={theme}
                             navigation={navigation}
@@ -325,9 +303,7 @@ export default function DashboardMedico({ setUserToken }) {
             <View style={styles.actionsGrid}>
                 {[
                     { icon: "people-outline", title: "Mis Pacientes", subtitle: "Lista completa", screen: "MisPacientes" },
-                    { icon: "bar-chart-outline", title: "Reportes", subtitle: "Estadísticas médicas", screen: "Reportes" },
                     { icon: "document-text-outline", title: "Recetas", subtitle: "Gestionar prescripciones", screen: "Recetas" },
-                    { icon: "calendar-outline", title: "Horarios", subtitle: "Gestionar disponibilidad", screen: "Horarios" },
                 ].map((item, index) => (
                     <TouchableOpacity
                         key={index}
@@ -392,7 +368,7 @@ const styles = StyleSheet.create({
     title: { fontSize: 22, fontWeight: "bold", marginBottom: 5 },
     subtitle: { fontSize: 16, fontWeight: "400" },
     headerIcons: { flexDirection: "row", position: "absolute", right: 0, top: 0 },
-    logoutBtn: { marginLeft: 15 },
+    logoutBtn: { marginLeft: 15, padding: 10 },
 
     // Bienvenida
     welcomeCard: { padding: 20, borderRadius: 15, marginBottom: 20, elevation: 3 },
@@ -503,6 +479,62 @@ const styles = StyleSheet.create({
     historyText: {
         fontWeight: "600",
         fontSize: 12,
+    },
+    // Modal cerrar sesión
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        width: 300,
+        padding: 20,
+        borderRadius: 15,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    modalMessage: {
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    modalCancelButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginRight: 10,
+        borderWidth: 1,
+        borderColor: '#94a3b8',
+    },
+    modalCancelText: {
+        color: '#94a3b8',
+        fontWeight: 'bold',
+    },
+    modalConfirmButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalConfirmText: {
+        color: 'white',
+        fontWeight: 'bold',
     },
 
 });

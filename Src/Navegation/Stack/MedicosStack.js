@@ -2,6 +2,8 @@ import { createStackNavigator } from "@react-navigation/stack";
 import DashboardMedico from "../../../Screen/Medicos/DashboardMedico";
 import CambiarContrasenaMedico from "../../../Screen/Medicos/CambiarContrasenaMedico";
 import EditarMedicoScreen from "../../../Screen/Medicos/EditarMedicoScreen";
+import MisPacientesScreen from "../../../Screen/Medicos/MisPacientesScreen";
+import HistorialPacienteScreen from "../../../Screen/Medicos/HistorialPacienteScreen";
 
 
 const Stack = createStackNavigator();
@@ -23,6 +25,16 @@ export default function Medico_Stack({ setUserToken }) {
                 name="EditarMedico"
                 component={EditarMedicoScreen}
                 options={{ title: "Editar Perfil" }}
+            />
+            <Stack.Screen
+                name="MisPacientes"
+                component={MisPacientesScreen}
+                options={{ title: "Mis Pacientes" }}
+            />
+            <Stack.Screen
+                name="HistorialPaciente"
+                component={HistorialPacienteScreen}
+                options={{ title: "Historial del Paciente" }}
             />
 
         </Stack.Navigator>

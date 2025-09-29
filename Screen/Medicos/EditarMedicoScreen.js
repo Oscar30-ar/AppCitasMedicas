@@ -1,13 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
-import {View,Text,TextInput,TouchableOpacity,StyleSheet,ScrollView,Alert,ActivityIndicator,Platform,} from "react-native";
+import {View,Text,TextInput,TouchableOpacity,StyleSheet,ScrollView,Alert,ActivityIndicator} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiConexion from "../../Src/Service/Conexion";
-import { updatePacientePerfil } from "../../Src/Service/PacienteService"; 
+import { updateMedicoPerfil } from "../../Src/Service/MedicoService"; 
 
 export default function EditarMedicoScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
@@ -20,13 +18,6 @@ export default function EditarMedicoScreen({ navigation }) {
   const [documento, setDocumento] = useState("");
   const [celular, setCelular] = useState("");
   const [correo, setCorreo] = useState("");
-  const [ciudad, setCiudad] = useState("");
-  const [eps, setEps] = useState("");
-  const [Rh, setRh] = useState("");
-  const [genero, setGenero] = useState("");
-  const [fechaNacimiento, setFechaNacimiento] = useState(new Date());
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const styles = StyleSheet.create({
     container: {
@@ -70,19 +61,6 @@ export default function EditarMedicoScreen({ navigation }) {
       height: 50,
       paddingHorizontal: 15,
     },
-    dateText: {
-      flex: 1,
-      color: theme.text,
-      fontSize: 16,
-    },
-    picker: {
-      backgroundColor: theme.background,
-      color: theme.text,
-      borderRadius: 10,
-      borderWidth: 1,
-      borderColor: theme.border,
-      marginBottom: 12,
-    },
     updateBtn: {
       backgroundColor: theme.primary,
       padding: 15,
@@ -112,13 +90,13 @@ export default function EditarMedicoScreen({ navigation }) {
         const token = await AsyncStorage.getItem("userToken");
         const role = await AsyncStorage.getItem("rolUser");
 
-        if (!token || role !== "paciente") {
+        if (!token || role !== "doctor") {
           Alert.alert("Error", "Permiso denegado.");
-          navigation.navigate("DashboardPaciente");
+          navigation.goBack();
           return;
         }
         
-        const response = await apiConexion.get("/me/paciente", {
+        const response = await apiConexion.get("/me/doctor", {
             headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -129,15 +107,6 @@ export default function EditarMedicoScreen({ navigation }) {
         setDocumento(String(userData.documento || ""));
         setCelular(userData.celular || "");
         setCorreo(userData.correo || "");
-        setCiudad(userData.ciudad || "");
-        setEps(userData.eps || "");
-        setRh(userData.Rh || "");
-        setGenero(userData.genero || "");
-        
-        if (userData.fecha_nacimiento) {
-            const date = new Date(userData.fecha_nacimiento.split("T")[0]);
-            setFechaNacimiento(date);
-        }
 
       } catch (error) {
         console.error("Error al cargar el perfil para edición:", error);
@@ -150,12 +119,6 @@ export default function EditarMedicoScreen({ navigation }) {
     CargarDatos();
   }, []);
 
-  const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || fechaNacimiento;
-    setShowDatePicker(Platform.OS === "ios");
-    setFechaNacimiento(currentDate);
-  };
-
   const handleUpdate = async () => {
     if (!validateForm()) return;
 
@@ -166,15 +129,10 @@ export default function EditarMedicoScreen({ navigation }) {
           apellido,
           documento,
           correo,
-          celular,
-          ciudad,
-          eps,
-          Rh,
-          genero,
-          fecha_nacimiento: fechaNacimiento.toISOString().split("T")[0],
+          celular
         };
 
-        const result = await updatePacientePerfil(userData);
+        const result = await updateMedicoPerfil(userData);
 
         if (result.success) {
           Alert.alert("Éxito.", result.message);
@@ -195,7 +153,7 @@ export default function EditarMedicoScreen({ navigation }) {
 
   const validateForm = () => {
     if (
-        !nombre || !apellido || !documento || !celular || !correo || !eps || !Rh || !genero || !ciudad
+        !nombre || !apellido || !documento || !celular || !correo
     ) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
       return false;
@@ -239,7 +197,7 @@ export default function EditarMedicoScreen({ navigation }) {
           value={documento}
           keyboardType="numeric"
           onChangeText={setDocumento}
-          editable={true} 
+          editable={false} // El documento no debería ser editable
         />
         <TextInput
           style={[styles.input, {backgroundColor: theme.background, color: theme.text, borderColor: theme.border}]}
@@ -249,32 +207,6 @@ export default function EditarMedicoScreen({ navigation }) {
           keyboardType="phone-pad"
           onChangeText={setCelular}
         />
-        <TextInput
-            style={[styles.input, {backgroundColor: theme.background, color: theme.text, borderColor: theme.border}]}
-            placeholder="Ciudad"
-            placeholderTextColor={theme.subtitle}
-            value={ciudad}
-            onChangeText={setCiudad}
-        />
-
-        {/* Fecha de nacimiento */}
-        <TouchableOpacity
-          style={[styles.inputContainer, {backgroundColor: theme.background, borderColor: theme.border}]}
-          onPress={() => setShowDatePicker(true)}
-        >
-          <Text style={[styles.dateText, {color: theme.text}]}>
-            {fechaNacimiento.toISOString().split("T")[0]}
-          </Text>
-          <Ionicons name="calendar-outline" size={24} color={theme.subtitle} />
-        </TouchableOpacity>
-        {showDatePicker && (
-          <DateTimePicker
-            value={fechaNacimiento}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onDateChange}
-          />
-        )}
 
         <TextInput
           style={[styles.input, {backgroundColor: theme.background, color: theme.text, borderColor: theme.border}]}
@@ -285,56 +217,6 @@ export default function EditarMedicoScreen({ navigation }) {
           value={correo}
           onChangeText={setCorreo}
         />
-
-        <View style={[styles.picker, {backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1}]}>
-        <Picker
-          selectedValue={eps}
-          style={{ color: theme.text }}
-          onValueChange={(itemValue) => setEps(itemValue)}
-          dropdownIconColor={theme.subtitle}
-        >
-          <Picker.Item label="Seleccione su EPS" value="" color={theme.subtitle} />
-          <Picker.Item label="Sura" value="Sura" />
-          <Picker.Item label="Sanitas" value="Sanitas" />
-          <Picker.Item label="Nueva EPS" value="Nueva EPS" />
-          <Picker.Item label="Compensar" value="Compensar" />
-          <Picker.Item label="Otra" value="Otra" />
-        </Picker>
-        </View>
-
-        <View style={[styles.picker, {backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1}]}>
-        <Picker
-          selectedValue={Rh}
-          style={{ color: theme.text }}
-          onValueChange={(itemValue) => setRh(itemValue)}
-          dropdownIconColor={theme.subtitle}
-        >
-          <Picker.Item label="Seleccione su tipo de sangre" value="" color={theme.subtitle} />
-          <Picker.Item label="A+" value="A+" />
-          <Picker.Item label="A-" value="A-" />
-          <Picker.Item label="B+" value="B+" />
-          <Picker.Item label="B-" value="B-" />
-          <Picker.Item label="AB+" value="AB+" />
-          <Picker.Item label="AB-" value="AB-" />
-          <Picker.Item label="O+" value="O+" />
-          <Picker.Item label="O-" value="O-" />
-        </Picker>
-        </View>
-
-        <View style={[styles.picker, {backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1}]}>
-        <Picker
-          selectedValue={genero}
-          style={{ color: theme.text }}
-          onValueChange={(itemValue) => setGenero(itemValue)}
-          dropdownIconColor={theme.subtitle}
-        >
-          <Picker.Item label="Seleccione su género" value="" color={theme.subtitle} />
-          <Picker.Item label="Masculino" value="Masculino" />
-          <Picker.Item label="Femenino" value="Femenino" />
-          <Picker.Item label="Otro" value="Otro" />
-        </Picker>
-        </View>
-
 
         {/* Botón de Actualizar */}
         <TouchableOpacity

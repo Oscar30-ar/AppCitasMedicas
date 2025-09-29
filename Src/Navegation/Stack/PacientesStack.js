@@ -1,6 +1,5 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import DashboardScreen from "../../../Screen/Pacientes/DashboardPaciente";
-import CrearCitasScreen from "../../../Screen/Pacientes/NuevaCita";
 import HistorialMedicoScreen from "../../../Screen/Pacientes/HistorialMedico";
 import MapaScreen from "../../../Screen/Pacientes/MapaScreen";
 import ContactoScreen from "../../../Screen/Pacientes/ContactoScreen";
@@ -20,11 +19,6 @@ export default function Pacientes_Stack({ setUserToken }){
                     headerShown: true, 
                     title: "Pacientes"
                 }}
-            />
-            <Stack.Screen
-                name="NuevaCita"
-                component={CrearCitasScreen}
-                options={{title: "Pacientes"}}
             />
 
             <Stack.Screen

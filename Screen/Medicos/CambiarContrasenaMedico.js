@@ -2,8 +2,7 @@ import React, { useState, useContext } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CambiarContraseña } from "../../Src/Service/PacienteService";
+import { changePassword } from "../../Src/Service/MedicoService";
 
 export default function CambiarContrasenaMedico({ navigation }) {
     const { theme } = useContext(ThemeContext);
@@ -32,7 +31,7 @@ export default function CambiarContrasenaMedico({ navigation }) {
 
         setLoading(true);
         try {
-            const result = await CambiarContraseña(currentPassword, newPassword);
+            const result = await changePassword(currentPassword, newPassword);
 
             if (result.success) {
                 Alert.alert("Éxito", result.message);

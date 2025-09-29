@@ -73,7 +73,7 @@ export default function PerfilMedicoScreen() {
 
       {/* HEADER con avatar */}
       <View style={styles.header}>
-        <Ionicons name="person-circle-outline" size={100} color={theme.primary} />
+        <FontAwesome5 name="user-md" size={100} color={theme.primary} />
         <Text style={[styles.profileName, { color: theme.text }]}> Dr. {usuario.nombre} {usuario.apellido}</Text>
       </View>
 
