@@ -19,7 +19,6 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleResetPassword = async () => {
-    // Validar que haya un correo
     if (!email) {
       Alert.alert("Error", "Por favor ingresa tu correo electrónico.");
       return;
