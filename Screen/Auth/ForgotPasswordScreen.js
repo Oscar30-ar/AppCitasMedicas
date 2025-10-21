@@ -19,7 +19,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const handleResetPassword = async () => {
-    if (!email) {
+   if (!email) {
       Alert.alert("Error", "Por favor ingresa tu correo electrónico.");
       return;
     }
@@ -45,13 +45,7 @@ export default function ForgotPasswordScreen({ navigation }) {
           [
             {
               text: "Aceptar",
-              onPress: () => {
-                if (navigation.canGoBack()) {
-                  navigation.goBack();
-                } else {
-                  navigation.navigate("Login");
-                }
-              },
+              onPress: () => navigation.navigate("Login"),
             },
           ]
         );
@@ -98,7 +92,11 @@ export default function ForgotPasswordScreen({ navigation }) {
           onPress={handleResetPassword}
           disabled={loading}
         >
-          {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Enviar</Text>}
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.buttonText}>Enviar Enlace</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate("ResetPassword")}>

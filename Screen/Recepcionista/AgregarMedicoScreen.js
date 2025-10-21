@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "../../components/ThemeContext";
-import { agregarMedico, getEspecialidades } from "../../Src/Service/RecepcionService";
+import { agregarMedico, getEspecialidades, obtenerConsultorios } from "../../Src/Service/RecepcionService";
 
 export default function AgregarMedicoScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
@@ -26,27 +26,39 @@ export default function AgregarMedicoScreen({ navigation }) {
   const [clave, setClave] = useState("");
   const [confirmarClave, setConfirmarClave] = useState("");
   const [especialidadId, setEspecialidadId] = useState(null);
-  
+  const [consultorioId, setConsultorioId] = useState(null);
+
 
   // Datos para el Picker
   const [especialidades, setEspecialidades] = useState([]);
-
+  const [consultorios, setConsultorios] = useState([]);
   // Estados de UI
   const [secureText, setSecureText] = useState(true);
   const [loading, setLoading] = useState(false);
   const [loadingEspecialidades, setLoadingEspecialidades] = useState(true);
+  const [loadingConsultorios, setLoadingConsultorios] = useState(true);
 
+  // Cargar datos para los Pickers (Especialidades y Consultorios)
   useEffect(() => {
-    const cargarEspecialidades = async () => {
-      const response = await getEspecialidades();
-      if (response.success) {
-        setEspecialidades(response.data);
-      } else {
-        Alert.alert("Error", "No se pudieron cargar las especialidades.");
+    const cargarDatos = async () => {
+      try {
+        const [resEspecialidades, resConsultorios] = await Promise.all([
+          getEspecialidades(),
+          obtenerConsultorios()
+        ]);
+
+        if (resEspecialidades.success) setEspecialidades(resEspecialidades.data);
+        else Alert.alert("Error", "No se pudieron cargar las especialidades.");
+
+        if (resConsultorios.success) setConsultorios(resConsultorios.data);
+        else Alert.alert("Error", "No se pudieron cargar los consultorios.");
+      } catch (error) {
+        Alert.alert("Error de Conexión", "No se pudieron cargar los datos necesarios para el formulario.");
       }
       setLoadingEspecialidades(false);
+      setLoadingConsultorios(false);
     };
-    cargarEspecialidades();
+    cargarDatos();
   }, []);
 
   const handleAgregar = async () => {
@@ -61,7 +73,8 @@ export default function AgregarMedicoScreen({ navigation }) {
         correo,
         clave,
         celular,
-        especialidades: [especialidadId], 
+        especialidades: [especialidadId],
+        id_consultorio: consultorioId,
       };
 
       const result = await agregarMedico(medicoData);
@@ -84,7 +97,7 @@ export default function AgregarMedicoScreen({ navigation }) {
   };
 
   const validateForm = () => {
-    if (!nombre || !apellido || !documento || !celular || !correo || !clave || !confirmarClave || !especialidadId) {
+    if (!nombre || !apellido || !documento || !celular || !correo || !clave || !confirmarClave || !especialidadId || !consultorioId) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
       return false;
     }
@@ -178,6 +191,22 @@ export default function AgregarMedicoScreen({ navigation }) {
               >
                 <Picker.Item label="Seleccione una especialidad" value={null} />
                 {especialidades.map((e) => (
+                  <Picker.Item key={e.id} label={e.nombre} value={e.id} />
+                ))}
+              </Picker>
+            </View>
+          )}
+
+          {loadingConsultorios ? <ActivityIndicator color={theme.primary} /> : (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={consultorioId}
+                onValueChange={(itemValue) => setConsultorioId(itemValue)}
+                style={{ color: theme.text }}
+                dropdownIconColor={theme.text}
+              >
+                <Picker.Item label="Seleccione un consultorio" value={null} />
+                {consultorios.map((e) => (
                   <Picker.Item key={e.id} label={e.nombre} value={e.id} />
                 ))}
               </Picker>

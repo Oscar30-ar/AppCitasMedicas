@@ -16,14 +16,24 @@
       "supportsTablet": true
     },
     "android": {
+      "useNextNotificationsApi":true,
+      "intentFilters":[],
+      "permissions":[],
+      "usesCleartextTraffic":true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.AppCitasMedicas"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4db280e4-d61f-4e37-96f6-d90c28e75be5"
+      }
     }
   }
 }

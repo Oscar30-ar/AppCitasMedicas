@@ -94,7 +94,7 @@ export default function NuevaCitaScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <Text style={[styles.title, { color: theme.text }]}>Crear Nueva Cita</Text>
+      <Text style={[styles.title, { color: theme.text }]}>Crear Cita</Text>
 
       {/* Documento del Paciente */}
       <Text style={{ color: theme.text }}>Documento del Paciente</Text>

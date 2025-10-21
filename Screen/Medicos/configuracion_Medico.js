@@ -1,28 +1,29 @@
-import React, { useContext, useState } from "react";
-import {
-    View,
-    Text,
-    StyleSheet,
-    ScrollView,
-    TouchableOpacity,
-    Modal,
-    Alert,
-    ActivityIndicator,
-} from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Alert, ActivityIndicator, Button, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import { logout } from "../../Src/Service/AuthService";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { eliminarCuentaMedico } from "../../Src/Service/MedicoService";
+
+import * as Notifications from "expo-notifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function configuracionMedico({ setUserToken }) {
+    //Notificaciones
+    const [permisoNotificaciones, setPermisoNotificaciones] = useState(false);
+    const [loadingNotificacion, setLoadingNotificacion] = useState(true);
+
+
+
+
     const { theme, toggleTheme } = useContext(ThemeContext);
     const navigation = useNavigation();
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    
+
     const isDark = theme.name === "dark";
 
     const handleDeleteAccount = async () => {
@@ -30,12 +31,12 @@ export default function configuracionMedico({ setUserToken }) {
         setIsDeleting(true);
 
         try {
-            const result = await eliminarCuentaMedico(); 
+            const result = await eliminarCuentaMedico();
 
             if (result.success) {
                 Alert.alert(
-                    "¡Éxito!", 
-                    result.message, 
+                    "¡Éxito!",
+                    result.message,
                     [{ text: "Aceptar", onPress: () => setUserToken(null) }]
                 );
             } else {
@@ -108,6 +109,68 @@ export default function configuracionMedico({ setUserToken }) {
         setShowLogoutModal(false);
     };
 
+    //permisos para notificaciones
+
+    const checkPermisos = async () => {
+        const { status } = await Notifications.getPermissionsAsync();
+        const preferencia = await AsyncStorage.getItem("notificaciones_activas");
+        setPermisoNotificaciones(status === 'granted' && preferencia === 'true');
+        setLoadingNotificacion(false);
+    };
+
+    useEffect(() => {
+        checkPermisos();
+    }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            checkPermisos();
+        }, [])
+    );
+
+    const toggleSwitch = async (valor) => {
+        if (valor) {
+            const { status } = await Notifications.requestPermissionsAsync();
+            if (status === 'granted') {
+                await AsyncStorage.setItem("notificaciones_activas", "true");
+                setPermisoNotificaciones(true);
+            } else {
+                await AsyncStorage.setItem("notificaciones_activas", "false");
+            }
+        } else {
+            await AsyncStorage.setItem("notificaciones_activas", "false");
+            setPermisoNotificaciones(false);
+            Alert.alert("Notificaciones Desactivadas","No recibirás alertas directas.");
+        }
+    }
+    const programarNotificacion = async () => {
+        const { status } = await Notifications.getPermissionsAsync();
+        const preferencia = await AsyncStorage.getItem('notificaciones_activas');
+        if (status !== 'granted' || preferencia !== 'true') {
+            Alert.alert("No tienes permisos para recibir notificaciones");
+            return;
+        }
+
+        const triggerDate = new Date(Date.now() + 10000); // 10 segundos
+
+        try {
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: 'Notificacion Programada',
+                    body: ' Notificacion programada para 10 segundos',
+                },
+                trigger: {
+                    type: 'date',
+                    date: triggerDate, // Pasas tu objeto Date aquí
+                },
+            });
+            Alert.alert("Notificación Programada", "Recibirás una notificación en unos segundos");
+        } catch (error) {
+            Alert.alert("Error al programar la notificación");
+        }
+    }
+
+
     return (
         <ScrollView
             style={[styles.container, { backgroundColor: theme.background }]}
@@ -141,12 +204,75 @@ export default function configuracionMedico({ setUserToken }) {
                         />
                     </TouchableOpacity>
                 ))}
+
+                <View style={{ marginTop: 8 }}>
+                    {/* Opción para Activar/Desactivar Notificaciones */}
+                    <View
+                        style={[
+                            styles.settingCard,
+                            styles.notificationCard,
+                            { backgroundColor: theme.cardBackground },
+                        ]}
+                    >
+                        <View
+                            style={[
+                                styles.iconContainer,
+                                { backgroundColor: theme.name === 'dark' ? theme.cardBackground : 'rgba(59,130,246,0.1)' },
+                            ]}
+                        >
+                            <Ionicons
+                                name="notifications-outline"
+                                size={26}
+                                color={theme.primary}
+                            />
+                        </View>
+
+                        <View style={styles.textContainer}>
+                            <Text style={[styles.settingTitle, { color: theme.text }]}>
+                                Notificaciones
+                            </Text>
+                            {loadingNotificacion ? (
+                                <ActivityIndicator color={theme.primary} />
+                            ) : (
+                                <Text style={[styles.settingSubtitle, { color: theme.subtitle }]}>
+                                    {permisoNotificaciones
+                                        ? "Activadas: Recibirás recordatorios y alertas."
+                                        : "Desactivadas: No recibirás alertas directas."}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* Switch de control */}
+                        <Switch
+                            trackColor={{ false: theme.subtitle, true: theme.primary }}
+                            thumbColor={permisoNotificaciones ? "#fff" : "#f4f3f4"}
+                            ios_backgroundColor={theme.subtitle}
+                            onValueChange={toggleSwitch}
+                            value={permisoNotificaciones}
+                            disabled={loadingNotificacion}
+                        />
+                    </View>
+
+                    {/* Opción de prueba de notificación*/}
+                        <TouchableOpacity
+                            style={[styles.testButton, { backgroundColor: theme.primary }]}
+                            onPress={programarNotificacion}
+                        >
+                            <Text style={styles.testButtonText}>
+                                Probar Notificación en 10s
+                            </Text>
+                            <Ionicons name="bulb-outline" size={18} color="white" style={{ marginLeft: 8 }} />
+                        </TouchableOpacity>
+                    
+                </View>
+
+
             </View>
-            
+
             <View style={styles.deleteSection}>
                 <Text style={[styles.deleteHeader, { color: theme.text }]}>Zona de Riesgo</Text>
 
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={[styles.deleteButton, isDeleting && styles.disabledButton]}
                     onPress={() => setShowDeleteModal(true)}
                     disabled={isDeleting}
@@ -208,7 +334,7 @@ export default function configuracionMedico({ setUserToken }) {
                     </View>
                 </View>
             </Modal>
-            
+
             {/* Modal de eliminación de cuenta */}
             <Modal
                 animationType="fade"
@@ -223,9 +349,9 @@ export default function configuracionMedico({ setUserToken }) {
                             ¿Estás **absolutamente seguro**? Esta acción es irreversible y eliminará todos tus datos.
                         </Text>
                         <View style={styles.modalButtons}>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 // ESTILO CORREGIDO: Borde y texto usan theme.subtitle
-                                style={[styles.modalCancelButton, { borderColor: theme.subtitle }]} 
+                                style={[styles.modalCancelButton, { borderColor: theme.subtitle }]}
                                 onPress={() => setShowDeleteModal(false)}
                             >
                                 <Text style={[styles.modalCancelText, { color: theme.subtitle }]}>No, Cancelar</Text>
@@ -244,7 +370,41 @@ export default function configuracionMedico({ setUserToken }) {
     );
 }
 
+
+
 const styles = StyleSheet.create({
+
+    // --- ESTILOS PARA NOTIFICACIONES ---
+    sectionHeader: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        paddingHorizontal: 5,
+    },
+    notificationCard: {
+        justifyContent: 'space-between',
+        paddingVertical: 15,
+    },
+    testButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 12,
+        borderRadius: 10,
+        marginTop: 10,
+        marginBottom: 10, 
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1.41,
+        elevation: 2,
+    },
+    testButtonText: {
+        color: 'white',
+        fontSize: 15,
+        fontWeight: '600',
+    },
+
     container: {
         flex: 1,
         paddingHorizontal: 20,
@@ -277,6 +437,7 @@ const styles = StyleSheet.create({
     settingSubtitle: {
         fontSize: 13,
     },
+
     // --- ESTILOS DE ELIMINACIÓN DE CUENTA ---
     deleteSection: {
         marginTop: 30,
@@ -311,6 +472,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 10,
     },
+    
     // --- ESTILOS DE MODAL (Reutilizados y adaptados) ---
     modalOverlay: {
         flex: 1,
@@ -367,7 +529,7 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 10,
         alignItems: 'center',
-        backgroundColor: '#DC2626', 
+        backgroundColor: '#DC2626',
     },
     modalConfirmText: {
         color: "white",

@@ -29,7 +29,6 @@ export default function LoginScreen({ navigation, setUserToken, setUserRole }) {
     setLoading(true);
 
     try {
-      await AsyncStorage.removeItem("userToken");
       await AsyncStorage.removeItem("userRole");
       setUserToken(null);
       setUserRole(null);

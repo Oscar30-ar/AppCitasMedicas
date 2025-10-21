@@ -2,7 +2,7 @@ import React, { useState, useContext } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
-import { changePassword } from "../../Src/Service/MedicoService";
+import { changePasswordMedico } from "../../Src/Service/MedicoService";
 
 export default function CambiarContrasenaMedico({ navigation }) {
     const { theme } = useContext(ThemeContext);
@@ -16,39 +16,38 @@ export default function CambiarContrasenaMedico({ navigation }) {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const handleChangePassword = async () => {
-        if (!currentPassword || !newPassword || !confirmPassword) {
-            Alert.alert("Error", "Por favor completa todos los campos.");
-            return;
-        }
-        if (newPassword !== confirmPassword) {
-            Alert.alert("Error", "Las contraseñas nuevas no coinciden.");
-            return;
-        }
-        if (newPassword.length < 6) {
-            Alert.alert("Error", "La nueva contraseña debe tener al menos 6 caracteres.");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const result = await changePassword(currentPassword, newPassword);
-
-            if (result.success) {
-                Alert.alert("Éxito", result.message);
-                setCurrentPassword("");
-                setNewPassword("");
-                setConfirmPassword("");
-                navigation.goBack();
-            } else {
-                Alert.alert("Error", result.message);
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                Alert.alert("Error", "Por favor completa todos los campos.");
+                return;
             }
-        } catch (error) {
-            console.error("Error inesperado en el cambio de contraseña:", error);
-            Alert.alert("Error", "Ocurrió un error inesperado. Inténtalo de nuevo.");
-        } finally {
-            setLoading(false);
-        }
-    };
+            if (newPassword !== confirmPassword) {
+                Alert.alert("Error", "Las contraseñas nuevas no coinciden.");
+                return;
+            }
+            if (newPassword.length < 6) {
+                Alert.alert("Error", "La nueva contraseña debe tener al menos 6 caracteres.");
+                return;
+            }
+    
+            setLoading(true);
+            try {
+                const result = await changePasswordMedico(currentPassword, newPassword);
+    
+                if (result.success) {
+                    Alert.alert("Éxito", result.message);
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                    navigation.goBack();
+                } else {
+                    Alert.alert("Error", result.message);
+                }
+            } catch (error) {
+                Alert.alert("Error", "Ocurrió un error inesperado. Inténtalo de nuevo.");
+            } finally {
+                setLoading(false);
+            }
+        };
 
     return (
         <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>

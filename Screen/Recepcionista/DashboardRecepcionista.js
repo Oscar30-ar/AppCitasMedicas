@@ -8,6 +8,7 @@ import {
     Modal,
     Alert,
     ActivityIndicator,
+    RefreshControl,
 } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
@@ -26,20 +27,23 @@ export default function DashboardRecepcionista({ setUserToken }) {
     const [cargando, setCargando] = useState(true);
     const [stats, setStats] = useState(null);
     const [loadingStats, setLoadingStats] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
-    //  Cargar estadísticas para las tarjetas
+    const cargarStats = async () => {
+        setLoadingStats(true);
+        const res = await obtenerEstadisticasRecepcion();
+        if (res.success) {
+            setStats(res.data);
+        } else {
+            Alert.alert("Error", res.message);
+        }
+        setLoadingStats(false);
+    };
+
+    // Carga inicial de datos
     useEffect(() => {
-        const cargarStats = async () => {
-            const res = await obtenerEstadisticasRecepcion();
-            if (res.success) {
-                setStats(res.data);
-            } else {
-                Alert.alert("Error", res.message);
-            }
-            setLoadingStats(false);
-        };
         cargarStats();
-    }, []);
+    }, []); 
 
     // Cargar perfil usuario
     useEffect(() => {
@@ -85,6 +89,13 @@ export default function DashboardRecepcionista({ setUserToken }) {
         };
 
         CargarPerfil();
+    }, []);
+
+    const onRefresh = React.useCallback(async () => {
+        setRefreshing(true);
+        // Volvemos a cargar las estadísticas al recargar
+        await cargarStats();
+        setRefreshing(false);
     }, []);
 
     if (cargando) {
@@ -194,6 +205,14 @@ export default function DashboardRecepcionista({ setUserToken }) {
     return (
         <ScrollView
             contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    colors={[theme.primary]}
+                    tintColor={theme.primary}
+                />
+            }
         >
 
 
@@ -303,6 +322,18 @@ export default function DashboardRecepcionista({ setUserToken }) {
                     subtitle="Nuevos ingresos"
                     icon="people-circle-outline"
                     onPress={() => navigation.navigate("RegistroPacientes")}
+                />
+                <ModuleCard
+                    title="Especialidades"
+                    subtitle="Administrar especialidades"
+                    icon="ribbon-outline"
+                    onPress={() => navigation.navigate("GestionEspecialidades")}
+                />
+                <ModuleCard
+                    title="Consultorios"
+                    subtitle="Administrar los consultorios"
+                    icon="business-outline"
+                    onPress={() => navigation.navigate("GestionConsultorios")}
                 />
             </View>
 

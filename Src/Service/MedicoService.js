@@ -4,28 +4,28 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //Estadisticas/tarjetas
 export const obtenerEstadisticas = async () => {
-  try {
-    const response = await apiConexion.get("/doctor/estadisticas");
-    return response.data.data;
-  } catch (error) {
-    console.error("Error obteniendo estadísticas:", error.response?.data || error.message);
-    return { citasHoy: 0, pacientesTotales: 0, pendientes: 0 };
-  }
+    try {
+        const response = await apiConexion.get("/doctor/estadisticas");
+        return response.data.data;
+    } catch (error) {
+        console.error("Error obteniendo estadísticas:", error.response?.data || error.message);
+        return { citasHoy: 0, pacientesTotales: 0, pendientes: 0 };
+    }
 };
 
 export const obtenerMisCitas = async () => {
-  try {
-    const token = await AsyncStorage.getItem("userToken");
+    try {
+        const token = await AsyncStorage.getItem("userToken");
 
-    const res = await apiConexion.get("/doctor/citas", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+        const res = await apiConexion.get("/doctor/citas", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
 
-    return { success: true, data: res.data.data };
-  } catch (error) {
-    console.error("Error obteniendo citas:", error.response?.data || error.message);
-    return { success: false, message: error.response?.data?.message || "Error de conexión" };
-  }
+        return { success: true, data: res.data.data };
+    } catch (error) {
+        console.error("Error obteniendo citas:", error.response?.data || error.message);
+        return { success: false, message: error.response?.data?.message || "Error de conexión" };
+    }
 };
 
 //Mis pacientes
@@ -34,17 +34,17 @@ export const obtenerMisPacientes = async () => {
         const response = await apiConexion.get("/doctor/pacientes");
 
         if (response.status === 200) {
-            return { 
-                success: true, 
+            return {
+                success: true,
                 data: response.data.data,
-                message: "Pacientes cargados." 
+                message: "Pacientes cargados."
             };
-        } 
-        
-        return { 
-            success: false, 
-            data: [], 
-            message: response.data.message || "Respuesta inesperada del servidor." 
+        }
+
+        return {
+            success: false,
+            data: [],
+            message: response.data.message || "Respuesta inesperada del servidor."
         };
 
     } catch (error) {
@@ -53,18 +53,18 @@ export const obtenerMisPacientes = async () => {
         // Manejo de errores de red o del servidor (4xx, 5xx)
         if (error.response) {
             // Error de respuesta del servidor (ej: 401 Unauthorized, 404 Not Found)
-            return { 
-                success: false, 
-                data: [], 
-                message: error.response.data.message || "Error al obtener la lista de pacientes." 
+            return {
+                success: false,
+                data: [],
+                message: error.response.data.message || "Error al obtener la lista de pacientes."
             };
         }
-        
+
         // Error de red (sin conexión)
-        return { 
-            success: false, 
-            data: [], 
-            message: "No se pudo conectar con el servidor. Verifica tu conexión a internet." 
+        return {
+            success: false,
+            data: [],
+            message: "No se pudo conectar con el servidor. Verifica tu conexión a internet."
         };
     }
 };
@@ -130,7 +130,7 @@ export async function eliminarCuentaMedico() {
         } else {
             return { success: false, message: response.data.message || "Error al eliminar la cuenta." };
         }
-        
+
     } catch (error) {
         console.error("Error en el servicio de eliminación de cuenta del médico:", error.response?.data || error.message);
         const errorMessage = error.response?.data?.message || "Error de red o servidor al eliminar.";
@@ -139,25 +139,31 @@ export async function eliminarCuentaMedico() {
 }
 
 //Cambiar contraseña
-export const changePassword = async (current_password, new_password) => {
+export const changePasswordMedico = async (current_password, new_password) => {
     try {
-        const response = await apiConexion.post('/change-password', {
+                console.log("current password", current_password);
+
+        const token = await AsyncStorage.getItem("userToken");
+
+        const response = await apiConexion.post('/doctor/change-password', {
             current_password,
             new_password,
             new_password_confirmation: new_password,
+        }, {
+            headers: { Authorization: `Bearer ${token}` },
         });
 
-        return { 
-            success: true, 
-            message: response.data.message || "Contraseña cambiada correctamente." 
+        return {
+            success: true,
+            message: response.data.message || "Contraseña cambiada correctamente."
         };
     } catch (error) {
         console.error("Error en changePassword service:", error.response?.data || error.message);
-        
+
         const errorMessage = error.response?.data?.message || "Error al cambiar la contraseña. Verifica la contraseña actual.";
-        return { 
-            success: false, 
-            message: errorMessage 
+        return {
+            success: false,
+            message: errorMessage
         };
     }
 };

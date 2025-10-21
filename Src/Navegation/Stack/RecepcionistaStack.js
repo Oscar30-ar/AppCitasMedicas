@@ -10,6 +10,12 @@ import GestionMedicosScreen from "../../../Screen/Recepcionista/GestionMedicosSc
 import AgregarMedicoScreen from "../../../Screen/Recepcionista/AgregarMedicoScreen";
 import EditarMedicoScreen from "../../../Screen/Recepcionista/EditarMedicoScreen";
 import EditarRecepcionistaScreen from "../../../Screen/Recepcionista/EditarRecepcionistaScreen";
+import GestionConsultoriosScreen from "../../../Screen/Recepcionista/GestionConsultoriosScreen";
+import AgregarConsultorioScreen from "../../../Screen/Recepcionista/AgregarConsultorioScreen";
+import EditarConsultorioScreen from "../../../Screen/Recepcionista/EditarConsultorioScreen";
+import AgregarEspecialidadScreen from "../../../Screen/Recepcionista/AgregarEspecialidadScreen";
+import EditarEspecialidadScreen from "../../../Screen/Recepcionista/EditarEspecialidadScreen";
+import GestionEspecialidadesScreen from "../../../Screen/Recepcionista/GestionEspecialidadesScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -71,6 +77,36 @@ export default function Recepcionista_Stack({ setUserToken }) {
                 name="EditarRecepcionista"
                 component={EditarRecepcionistaScreen}
                 options={{ title: "Editar Perfil" }}
+            />
+            <Stack.Screen
+                name="GestionConsultorios"
+                component={GestionConsultoriosScreen}
+                options={{ title: "Gestión de Consultorios" }}
+            />
+            <Stack.Screen
+                name="AgregarConsultorio"
+                component={AgregarConsultorioScreen}
+                options={{ title: "Agregar Consultorio" }}
+            />
+            <Stack.Screen
+                name="EditarConsultorio"
+                component={EditarConsultorioScreen}
+                options={{ title: "Editar Consultorio" }}
+            />
+            <Stack.Screen
+                name="GestionEspecialidades"
+                component={GestionEspecialidadesScreen}
+                options={{ title: "Gestión de Especialidades" }}
+            />
+            <Stack.Screen
+                name="AgregarEspecialidad"
+                component={AgregarEspecialidadScreen}
+                options={{ title: "Agregar Especialidad" }}
+            />
+            <Stack.Screen
+                name="EditarEspecialidad"
+                component={EditarEspecialidadScreen}
+                options={{ title: "Editar Especialidad" }}
             />
 
         </Stack.Navigator>

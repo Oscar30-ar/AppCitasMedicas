@@ -54,11 +54,38 @@ export const ProximasCitas = async () => {
     }
 };
 
+//Cambiar contraseña
+export const CambiarContraseña = async (current_password, new_password) => {
+    try {
+        const token = await AsyncStorage.getItem("userToken");
+        const response = await apiConexion.post('/paciente/change-password', {
+            current_password,
+            new_password,
+            new_password_confirmation: new_password,
+        }, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+
+        return {
+            success: true,
+            message: response.data.message || "Contraseña cambiada correctamente."
+        };
+    } catch (error) {
+        console.error("Error en changePassword service:", error.response?.data || error.message);
+
+        const errorMessage = error.response?.data?.message || "Error al cambiar la contraseña. Verifica la contraseña actual.";
+        return {
+            success: false,
+            message: errorMessage
+        };
+    }
+};
+
 //Eliminar cuenta
 export async function eliminarCuentaPaciente() {
     try {
         const token = await AsyncStorage.getItem("userToken");
-        
+
         if (!token) {
             return { success: false, message: "No hay sesión activa." };
         }
@@ -75,7 +102,7 @@ export async function eliminarCuentaPaciente() {
         } else {
             return { success: false, message: response.data.message || "Error al eliminar la cuenta." };
         }
-        
+
     } catch (error) {
         console.error("Error en el servicio de eliminación de cuenta:", error.response?.data || error.message);
         const errorMessage = error.response?.data?.message || "Error de red o servidor al eliminar.";

@@ -28,7 +28,7 @@ function PerfilStackWrapper({ setUserToken }) {
             <Stack.Screen
                 name="EditarPaciente"
                 component={EditarPacienteScreen} // crea esta pantalla
-                options={{ title: "Términos de Uso" }}
+                options={{ title: "Editar Paciente" }}
             />
         </Stack.Navigator>
     );
