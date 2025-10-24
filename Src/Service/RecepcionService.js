@@ -15,44 +15,44 @@ export const obtenerPacientes = async () => {
   }
 };
 
-//listar especualidades
+//listar especialidades
 export const getEspecialidades = async () => {
-    try {
-        const response = await apiConexion.get("/especialidades");
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error("Error en getEspecialidades:", error.response?.data || error.message);
-        return { success: false, message: "No se pudieron cargar las especialidades." };
-    }
+  try {
+    const response = await apiConexion.get("/especialidades");
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error en getEspecialidades:", error.response?.data || error.message);
+    return { success: false, message: "No se pudieron cargar las especialidades." };
+  }
 };
 
-//agrefar medico
+//agregar medico
 export const agregarMedico = async (medicoData) => {
-    try {
-        const response = await apiConexion.post("/AgregarDoctores", medicoData);
-        if (response.status === 201) {
-            return { success: true, message: "Médico agregado exitosamente." };
-        }
-        return { success: false, message: "No se pudo agregar al médico." };
-    } catch (error) {
-        console.error("Error en agregarMedico:", error.response?.data || error.message);
-        const message = error.response?.data?.message || "Ocurrió un error en el servidor.";
-        return { success: false, message };
+  try {
+    const response = await apiConexion.post("/AgregarDoctores", medicoData);
+    if (response.status === 201) {
+      return { success: true, message: "Médico agregado exitosamente." };
     }
+    return { success: false, message: "No se pudo agregar al médico." };
+  } catch (error) {
+    console.error("Error en agregarMedico:", error.response?.data || error.message);
+    const message = error.response?.data?.message || "Ocurrió un error en el servidor.";
+    return { success: false, message };
+  }
 };
 
 //obtener doctor por id
 export const obtenerDoctorPorId = async (id) => {
-    try {
-        const response = await apiConexion.get(`/doctores/${id}`);
-        if (response.status === 200) {
-            return { success: true, data: response.data.data };
-        }
-        return { success: false, message: "No se pudo obtener la información del médico." };
-    } catch (error) {
-        console.error("Error en obtenerDoctorPorId:", error.response?.data || error.message);
-        return { success: false, message: "Error al cargar los datos del médico." };
+  try {
+    const response = await apiConexion.get(`/doctores/${id}`);
+    if (response.status === 200) {
+      return { success: true, data: response.data.data };
     }
+    return { success: false, message: "No se pudo obtener la información del médico." };
+  } catch (error) {
+    console.error("Error en obtenerDoctorPorId:", error.response?.data || error.message);
+    return { success: false, message: "Error al cargar los datos del médico." };
+  }
 };
 
 
@@ -170,9 +170,9 @@ export const crearCita = async (citaData) => {
     return { success: false, message: response.data.message };
   } catch (error) {
     console.error("Error en crearCita:", error.response?.data || error);
-    return { 
-      success: false, 
-      message: error.response?.data?.message || "Error al crear la cita" 
+    return {
+      success: false,
+      message: error.response?.data?.message || "Error al crear la cita"
     };
   }
 };
@@ -203,7 +203,7 @@ export const obtenerCitasHoy = async () => {
     if (response.data.success) {
       return {
         success: true,
-        data: response.data.data, 
+        data: response.data.data,
       };
     } else {
       return {
@@ -222,84 +222,67 @@ export const obtenerCitasHoy = async () => {
 
 //editar perfil recepcion
 export const updateRecepcionistaPerfil = async (userData) => {
-    try {
-        const response = await apiConexion.put('/me/recepcionista', userData);
-        return { success: true, message: "Perfil actualizado correctamente. Los cambios se reflejarán la próxima vez que inicie sesión.", user: response.data };
-    } catch (error) {
-        console.error("Error en updateMedicoPerfil:", error.response?.data || error.message);
-        const errorMessage = error.response?.data?.message || "Error al actualizar el perfil del médico";
-        return { success: false, message: errorMessage };
-    }
+  try {
+    const response = await apiConexion.put('/me/recepcionista', userData);
+    return { success: true, message: "Perfil actualizado correctamente. Los cambios se reflejarán la próxima vez que inicie sesión.", user: response.data };
+  } catch (error) {
+    console.error("Error en updateMedicoPerfil:", error.response?.data || error.message);
+    const errorMessage = error.response?.data?.message || "Error al actualizar el perfil del médico";
+    return { success: false, message: errorMessage };
+  }
 };
 
 //eliminar cuenta recepcionista
 export async function eliminarCuentaRecepcionista() {
-    try {
-        const token = await AsyncStorage.getItem("userToken");
-        
-        if (!token) {
-            return { success: false, message: "No hay sesión activa." };
-        }
+  try {
+    const token = await AsyncStorage.getItem("userToken");
 
-        const response = await apiConexion.delete('/eliminarCuenta');
-
-        if (response.data && response.data.success) {
-            await AsyncStorage.multiRemove(["userToken", "rolUser", "userData"]);
-            return { success: true, message: response.data.message };
-        } else {
-            return { success: false, message: response.data.message || "Error al eliminar la cuenta." };
-        }
-        
-    } catch (error) {
-        console.error("Error en el servicio de eliminación de cuenta del recepcionista:", error.response?.data || error.message);
-        const errorMessage = error.response?.data?.message || "Error de red o servidor al eliminar.";
-        return { success: false, message: errorMessage };
+    if (!token) {
+      return { success: false, message: "No hay sesión activa." };
     }
+
+    const response = await apiConexion.delete('/eliminarCuenta');
+
+    if (response.data && response.data.success) {
+      await AsyncStorage.multiRemove(["userToken", "rolUser", "userData"]);
+      return { success: true, message: response.data.message };
+    } else {
+      return { success: false, message: response.data.message || "Error al eliminar la cuenta." };
+    }
+
+  } catch (error) {
+    console.error("Error en el servicio de eliminación de cuenta del recepcionista:", error.response?.data || error.message);
+    const errorMessage = error.response?.data?.message || "Error de red o servidor al eliminar.";
+    return { success: false, message: errorMessage };
+  }
 }
 
 //Cambiar contraseña
 export const changePassword = async (current_password, new_password) => {
-    try {
-        const token = await AsyncStorage.getItem("userToken");
-        const response = await apiConexion.post('/recepcionista/change-password', {
-            current_password,
-            new_password,
-            new_password_confirmation: new_password,
-        }, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-
-        return {
-            success: true,
-            message: response.data.message || "Contraseña cambiada correctamente."
-        };
-    } catch (error) {
-        console.error("Error en changePassword service:", error.response?.data || error.message);
-
-        const errorMessage = error.response?.data?.message || "Error al cambiar la contraseña. Verifica la contraseña actual.";
-        return {
-            success: false,
-            message: errorMessage
-        };
-    }
-};
-
-//acctualiza estado cita
-export const actualizarEstadoCita = async (id, estado) => {
   try {
-    const response = await apiConexion.put(`/citas/${id}/estado`, { estado });
-    return response.data;
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await apiConexion.post('/recepcionista/change-password', {
+      current_password,
+      new_password,
+      new_password_confirmation: new_password,
+    }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return {
+      success: true,
+      message: response.data.message || "Contraseña cambiada correctamente."
+    };
   } catch (error) {
-    console.error("Error en actualizarEstadoCita:", error);
+    console.error("Error en changePassword service:", error.response?.data || error.message);
+
+    const errorMessage = error.response?.data?.message || "Error al cambiar la contraseña. Verifica la contraseña actual.";
     return {
       success: false,
-      message:
-        error.response?.data?.message ||
-        "Error al actualizar el estado de la cita.",
+      message: errorMessage
     };
   }
 };
-
 
 //eliminnar doctor
 export const eliminarDoctor = async (id) => {
@@ -329,48 +312,58 @@ export const obtenerConsultorios = async () => {
   }
 };
 
+// listar consultorios Disponibles
+export const listarConsultoriosDisponibles = async () => {
+  try {
+    const response = await apiConexion.get("/consultoriosDisponibles");
+    return { success: true, data: response.data.data };
+  } catch (error) {
+    console.error("Error en listarConsultoriosDisponibles:", error.response?.data || error.message);
+    return { success: false, message: "Error al cargar consultorios disponibles." };
+  }
+}
 // Obtener un consultorio por ID
 export const obtenerConsultorioPorId = async (id) => {
-    try {
-        const response = await apiConexion.get(`/consultorioByID/${id}`);
-        return { success: true, data: response.data.data };
-    } catch (error) {
-        console.error("Error en obtenerConsultorioPorId:", error.response?.data || error.message);
-        return { success: false, message: "Error al cargar el consultorio." };
-    }
+  try {
+    const response = await apiConexion.get(`/consultorioByID/${id}`);
+    return { success: true, data: response.data.data };
+  } catch (error) {
+    console.error("Error en obtenerConsultorioPorId:", error.response?.data || error.message);
+    return { success: false, message: "Error al cargar el consultorio." };
+  }
 };
 
 // Agregar un nuevo consultorio
 export const agregarConsultorio = async (data) => {
-    try {
-        const response = await apiConexion.post("/CrearConsultorios", data);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error("Error en agregarConsultorio:", error.response?.data || error.message);
-        return { success: false, message: error.response?.data?.message || "Error al agregar el consultorio." };
-    }
+  try {
+    const response = await apiConexion.post("/CrearConsultorios", data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error en agregarConsultorio:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error al agregar el consultorio." };
+  }
 };
 
 // Actualizar un consultorio
 export const actualizarConsultorio = async (id, data) => {
-    try {
-        const response = await apiConexion.put(`/EditarConsultorios/${id}`, data);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error("Error en actualizarConsultorio:", error.response?.data || error.message);
-        return { success: false, message: error.response?.data?.message || "Error al actualizar el consultorio." };
-    }
+  try {
+    const response = await apiConexion.put(`/EditarConsultorios/${id}`, data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error en actualizarConsultorio:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error al actualizar el consultorio." };
+  }
 };
 
 // Eliminar un consultorio
 export const eliminarConsultorio = async (id) => {
-    try {
-        const response = await apiConexion.delete(`/EliminarConsultorio/${id}`);
-        return { success: true, message: response.data.message };
-    } catch (error) {
-        console.error("Error en eliminarConsultorio:", error.response?.data || error.message);
-        return { success: false, message: error.response?.data?.message || "Error al eliminar el consultorio." };
-    }
+  try {
+    const response = await apiConexion.delete(`/EliminarConsultorio/${id}`);
+    return { success: true, message: response.data.message };
+  } catch (error) {
+    console.error("Error en eliminarConsultorio:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error al eliminar el consultorio." };
+  }
 };
 
 // --- GESTIÓN DE ESPECIALIDADES ---
@@ -400,33 +393,184 @@ export const listarEspecialidadPorId = async (id) => {
 
 // Agregar una nueva especialidad
 export const agregarEspecialidad = async (data) => {
-    try {
-        const response = await apiConexion.post("/crearEspecialidades", data);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error("Error en agregarEspecialidad:", error.response?.data || error.message);
-        return { success: false, message: error.response?.data?.message || "Error al agregar la especialidad." };
-    }
+  try {
+    const response = await apiConexion.post("/crearEspecialidades", data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error en agregarEspecialidad:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error al agregar la especialidad." };
+  }
 };
 
 // Actualizar una especialidad
 export const actualizarEspecialidad = async (id, data) => {
-    try {
-        const response = await apiConexion.put(`/especialidades/${id}`, data);
-        return { success: true, data: response.data };
-    } catch (error) {
-        console.error("Error en actualizarEspecialidad:", error.response?.data || error.message);
-        return { success: false, message: error.response?.data?.message || "Error al actualizar la especialidad." };
-    }
+  try {
+    const response = await apiConexion.put(`/especialidades/${id}`, data);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("Error en actualizarEspecialidad:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error al actualizar la especialidad." };
+  }
 };
 
 // Eliminar una especialidad
 export const eliminarEspecialidad = async (id) => {
-    try {
-        const response = await apiConexion.delete(`/especialidades/${id}`);
-        return { success: true, message: response.data.message };
-    } catch (error) {
-        console.error("Error en eliminarEspecialidad:", error.response?.data || error.message);
-        return { success: false, message: error.response?.data?.message || "Error al eliminar la especialidad." };
+  try {
+    const response = await apiConexion.delete(`/especialidades/${id}`);
+    return { success: true, message: response.data.message };
+  } catch (error) {
+    console.error("Error en eliminarEspecialidad:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error al eliminar la especialidad." };
+  }
+};
+
+// --- GESTIÓN DE EPS ---
+
+// Obtener todas las EPS
+export const obtenerEps = async () => {
+  try {
+    const response = await apiConexion.get("/listarEps"); // Asumiendo un nuevo endpoint /eps
+    if (response.status === 200) {
+      return { success: true, data: response.data.data };
     }
+    return { success: false, data: [], message: "No se pudieron cargar las EPS." };
+  } catch (error) {
+    console.error("Error en obtenerEps:", error.response?.data || error.message);
+    return { success: false, message: "Error al cargar las EPS." };
+  }
+};
+
+// Obtener una EPS por ID
+export const obtenerEpsPorId = async (id) => {
+  try {
+    const response = await apiConexion.get(`/EpsByID/${id}`); // Asumiendo /eps/{id}
+    if (response.status === 200) {
+      return { success: true, data: response.data.data };
+    }
+    return { success: false, message: "No se pudo cargar la información de la EPS." };
+  } catch (error) {
+    console.error("Error en obtenerEpsPorId:", error.response?.data || error.message);
+    return { success: false, message: "Error al cargar la EPS." };
+  }
+};
+
+// Agregar una nueva EPS
+export const agregarEps = async (data) => {
+  try {
+    const response = await apiConexion.post("/CrearEps", data);
+
+    if (response.status === 201 && response.data.success) {
+      return {
+        success: true,
+        message: response.data.message,
+        data: response.data.data,
+      };
+    }
+
+    return {
+      success: false,
+      message: response.data.message || "No se pudo agregar la EPS.",
+    };
+  } catch (error) {
+    const status = error.response?.status;
+    const data = error.response?.data;
+
+    // Error 422 (ya existe la EPS)
+    if (status === 422) {
+      const mensaje =
+        data?.errors?.nombre?.[0] || "Ya existe una EPS con este nombre.";
+      // No mostramos console.error porque no es un error grave
+      return { success: false, message: mensaje };
+    }
+
+    // Otros errores sí se registran en consola
+    console.error("Error en agregarEps:", data || error.message);
+
+    return {
+      success: false,
+      message:
+        data?.message || "Ocurrió un problema al agregar la EPS.",
+    };
+  }
+};
+
+// Actualizar una EPS
+export const actualizarEps = async (id, data) => {
+  try {
+    const response = await apiConexion.put(`/EditarEps/${id}`, data); 
+    if (response.status === 200) {
+      return { success: true, data: response.data };
+    }
+    return { success: false, message: "No se pudo actualizar la EPS." };
+  } catch (error) {
+    console.error("Error en actualizarEps:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error al actualizar la EPS." };
+  }
+};
+
+// Eliminar una EPS
+export const eliminarEps = async (id) => {
+  try {
+    const response = await apiConexion.delete(`/EliminarEps/${id}`);
+    if (response.status === 200) {
+      return { success: true, message: response.data.message };
+    }
+    return { success: false, message: "No se pudo eliminar la EPS." };
+  } catch (error) {
+    console.error("Error en eliminarEps:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error al eliminar la EPS." };
+  }
+};
+
+// Obtener todas las citas pendientes
+export const obtenerCitasPendientes = async () => {
+  try {
+    const response = await apiConexion.get("/citas/pendientes");
+    if (response.status === 200) {
+      return { success: true, data: response.data.data };
+    }
+    return { success: false, message: "No se pudieron cargar las citas pendientes." };
+  } catch (error) {
+    console.error("Error al obtener citas pendientes:", error);
+    return { success: false, message: "Error al obtener las citas pendientes." };
+  }
+};
+
+// Actualizar estado de una cita (confirmar o cancelar)
+export const actualizarEstadoCita = async (id, estado) => {
+  try {
+    const response = await apiConexion.put(`/citas/${id}/estado`, { estado });
+    if (response.status === 200) {
+      return { success: true, message: response.data.message, data: response.data.data };
+    }
+    return { success: false, message: "No se pudo actualizar el estado de la cita." };
+  } catch (error) {
+    console.error("Error al actualizar cita:", error);
+    return { success: false, message: "Error al actualizar la cita." };
+  }
+};
+
+
+// Crear cita
+export const crearCitaRecepcion = async (data) => {
+  try {
+    const res = await apiConexion.post("/crearCita", data);
+    return res.data;
+  } catch (error) {
+    console.error("Error al crear cita:", error);
+    return { success: false, message: "No se pudo crear la cita." };
+  }
+};
+
+// Verificar disponibilidad
+export const verificarDisponibilidadDoctor = async (doctorId, fecha, hora) => {
+  try {
+    const res = await apiConexion.get(`/disponibilidad/${doctorId}`, {
+      params: { fecha, hora },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Error verificando disponibilidad:", error);
+    return { success: false, disponible: false, mensaje: "Error de conexión." };
+  }
 };

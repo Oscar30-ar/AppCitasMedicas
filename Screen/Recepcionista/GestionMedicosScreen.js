@@ -17,6 +17,11 @@ const DoctorCard = ({ doctor, theme, onEdit, onDelete }) => (
             <Text style={[styles.doctorSpecialty, { color: theme.subtitle }]}>
                 Especialidad: {doctor.especialidades?.map(e => e.nombre).join(', ') || 'N/A'}
             </Text>
+
+            {/**Mostrar el consultorio */}
+            <Text style={[styles.doctorSpecialty, { color: theme.subtitle }]}>
+                Consultorio: {doctor.consultorio?.nombre || 'N/A'}
+            </Text>
         </View>
         <View style={styles.actions}>
             <TouchableOpacity onPress={onEdit} style={{ marginRight: 15 }}>

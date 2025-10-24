@@ -84,7 +84,7 @@ export default function DashboardMedico({ setUserToken }) {
                 const response = await apiConexion.get(url);
                 setUsuario(response.data.user || response.data);
 
-                await new Promise(resolve => setTimeout(resolve, 300)); 
+                await new Promise(resolve => setTimeout(resolve, 300));
 
                 // --- CITAS HOY ---
                 const responseCitas = await obtenerMisCitas();
@@ -96,9 +96,10 @@ export default function DashboardMedico({ setUserToken }) {
             } catch (error) {
                 console.error("Error cargando datos:", error);
                 if (error.response?.status !== 401) {
+                    const errorMessage = error.message || "No se pudieron cargar los datos. Por favor, inicia sesión de nuevo.";
                     Alert.alert(
-                        "Error", 
-                        "No se pudieron cargar los datos. Por favor, inicia sesión de nuevo.",
+                        "Error",
+                        errorMessage,
                         [{ text: "Aceptar", onPress: () => setUserToken(null) }]
                     );
                 }
@@ -144,8 +145,6 @@ export default function DashboardMedico({ setUserToken }) {
     const navigateToScreen = (screen) => {
         if (screen === "MisPacientes" || screen === "AgendaHoy") {
             navigation.navigate(screen);
-        } else if (mensajes[screen]) {
-            Alert.alert("Navegación", mensajes[screen]);
         } else {
             navigation.navigate(screen);
         }
@@ -218,6 +217,7 @@ export default function DashboardMedico({ setUserToken }) {
                 {[
                     { icon: "people-outline", title: "Mis Pacientes", subtitle: "Ver lista completa", screen: "MisPacientes" },
                     { icon: "calendar-outline", title: "Agenda de Hoy", subtitle: "Ver citas del día", screen: "AgendaHoy" },
+                    { icon: "time-outline", title: "Mi Horario", subtitle: "Gestionar mi horario", screen: "MiHorario" },
                 ].map((item, index) => (
                     <TouchableOpacity
                         key={index}

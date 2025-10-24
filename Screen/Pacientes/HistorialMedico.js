@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, RefreshControl } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import { HistorialMedico } from "../../Src/Service/PacienteService";
@@ -36,45 +36,52 @@ export default function HistorialMedicoScreen() {
     const { theme } = useContext(ThemeContext);
     const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
     // Lógica para cargar el historial
-    useEffect(() => {
-        const loadHistory = async () => {
-            setLoading(true);
-            try {
-                const result = await HistorialMedico();
+    const loadHistory = async () => {
+        setLoading(true);
+        try {
+            const result = await HistorialMedico();
 
-                if (result.success && Array.isArray(result.data)) {
+            if (result.success && Array.isArray(result.data)) {
+                
+                const formattedHistory = result.data.map(cita => ({
+                    id: cita.id,
+                    date: cita.fecha, 
+                    time: cita.hora, 
+                    description: cita.descripcion || 'Consulta sin detalles',
+                    consultorio: cita.consultorio, 
                     
-                    const formattedHistory = result.data.map(cita => ({
-                        id: cita.id,
-                        date: cita.fecha, 
-                        time: cita.hora, 
-                        description: cita.descripcion || 'Consulta sin detalles',
-                        consultorio: cita.consultorio, 
-                        
-                        eventType: 'Consulta', 
-                        
-                        doctor: `Dr. ${cita.doctor?.nombre || ''} ${cita.doctor?.apellido || ''}`, 
-                        
-                        specialty: cita.doctor?.especialidades?.[0]?.nombre || 'Medicina General', 
-                    }));
+                    eventType: 'Consulta', 
                     
-                    setHistory(formattedHistory);
-                } else {
-                    Alert.alert("Error de Historial", result.message || "La respuesta del servidor no es una lista válida de citas."); 
-                }
-            } catch (error) {
-                console.error("Error al cargar el historial:", error);
-                Alert.alert("Error", "Ocurrió un error inesperado al cargar el historial.");
-            } finally {
-                setLoading(false);
+                    doctor: `Dr. ${cita.doctor?.nombre || ''} ${cita.doctor?.apellido || ''}`, 
+                    
+                    specialty: cita.doctor?.especialidades?.[0]?.nombre || 'Medicina General', 
+                }));
+                
+                setHistory(formattedHistory);
+            } else {
+                Alert.alert("Error de Historial", result.message || "La respuesta del servidor no es una lista válida de citas."); 
             }
-        };
+        } catch (error) {
+            console.error("Error al cargar el historial:", error);
+            Alert.alert("Error", "Ocurrió un error inesperado al cargar el historial.");
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
 
+    useEffect(() => {
         loadHistory();
     }, []);
     
+    const onRefresh = () => {
+        setRefreshing(true);
+        loadHistory();
+    };
+
     // Si está cargando
     if (loading) {
         return (
@@ -108,6 +115,9 @@ export default function HistorialMedicoScreen() {
             <FlatList
                 data={history}
                 keyExtractor={(item, index) => item.id ? String(item.id) : index.toString()} 
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+                }
                 renderItem={({ item }) => <EventCard item={item} theme={theme} />}
                 contentContainerStyle={styles.listContent}
             />

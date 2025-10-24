@@ -1,13 +1,13 @@
 import React, { useState, useContext, useEffect } from "react";
-import {View,Text,TextInput,TouchableOpacity,StyleSheet,ScrollView,Alert,ActivityIndicator,Platform,} from "react-native";
+import {View,Text,TextInput,TouchableOpacity,StyleSheet,ScrollView,Alert,ActivityIndicator,Platform} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "../../components/ThemeContext";
 import ThemeSwitcher from "../../components/ThemeSwitcher";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { updatePacientePerfil, obtenerEpsPublico } from "../../Src/Service/PacienteService"; 
 import apiConexion from "../../Src/Service/Conexion";
-import { updatePacientePerfil } from "../../Src/Service/PacienteService"; 
 
 export default function EditarPacienteScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
@@ -20,12 +20,21 @@ export default function EditarPacienteScreen({ navigation }) {
   const [celular, setCelular] = useState("");
   const [correo, setCorreo] = useState("");
   const [ciudad, setCiudad] = useState("");
-  const [eps, setEps] = useState("");
+  const [epsId, setEpsId] = useState(null);
   const [Rh, setRh] = useState("");
   const [genero, setGenero] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState(new Date());
 
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Estados para los pickers dinámicos
+  const [epsList, setEpsList] = useState([]);
+  const [loadingEps, setLoadingEps] = useState(true);
+  const [ciudadesList, setCiudadesList] = useState([]);
+  const [loadingCiudades, setLoadingCiudades] = useState(true);
+
+  // 🔹 Solo Boyacá
+  const departamentosPermitidos = [7];
 
   const styles = StyleSheet.create({
     container: {
@@ -106,6 +115,40 @@ export default function EditarPacienteScreen({ navigation }) {
 
   useEffect(() => {
     const CargarDatos = async () => {
+      // Cargar Ciudades y EPS en paralelo
+      const cargarDependencias = async () => {
+        try {
+          const [resCiudades, resEps] = await Promise.all([
+            fetch("https://api-colombia.com/api/v1/city"),
+            obtenerEpsPublico(),
+          ]);
+
+          // Procesar ciudades
+          if (resCiudades.ok) {
+            const dataCiudades = await resCiudades.json();
+            const filtradas = dataCiudades.filter(ciudad =>
+              departamentosPermitidos.includes(ciudad.departmentId)
+            );
+            setCiudadesList(filtradas);
+          } else {
+            console.error("Error al cargar ciudades");
+          }
+
+          // Procesar EPS
+          if (resEps.success) {
+            setEpsList(resEps.data);
+          } else {
+            Alert.alert("Error", "No se pudieron cargar las EPS.");
+          }
+        } catch (error) {
+          console.error("Error cargando dependencias:", error);
+          Alert.alert("Error", "No se pudieron cargar los datos para los selectores.");
+        } finally {
+          setLoadingCiudades(false);
+          setLoadingEps(false);
+        }
+      };
+
       setLoadingInitial(true);
       try {
         const token = await AsyncStorage.getItem("userToken");
@@ -113,15 +156,19 @@ export default function EditarPacienteScreen({ navigation }) {
 
         if (!token || role !== "paciente") {
           Alert.alert("Error", "Permiso denegado.");
-          navigation.navigate("DashboardPaciente");
+          navigation.goBack();
           return;
         }
-        
+
+        // Iniciar carga de dependencias y perfil
+        cargarDependencias();
+        // 💡 CORRECCIÓN: Usar apiConexion.get para OBTENER el perfil, no update.
         const response = await apiConexion.get("/me/paciente", {
-            headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
-        const userData = response.data.user || response.data;
+        // 💡 CORRECCIÓN: Asegurar que se acceda a la propiedad correcta (`data` o `user`) que contiene el objeto del perfil.
+        const userData = response.data.data || response.data.user || response.data;
 
         setNombre(userData.nombre || "");
         setApellido(userData.apellido || "");
@@ -129,10 +176,10 @@ export default function EditarPacienteScreen({ navigation }) {
         setCelular(userData.celular || "");
         setCorreo(userData.correo || "");
         setCiudad(userData.ciudad || "");
-        setEps(userData.eps || "");
+        setEpsId(userData.id_eps || null); // Asumiendo que el backend devuelve id_eps
         setRh(userData.Rh || "");
         setGenero(userData.genero || "");
-        
+
         if (userData.fecha_nacimiento) {
             const date = new Date(userData.fecha_nacimiento.split("T")[0]);
             setFechaNacimiento(date);
@@ -167,7 +214,7 @@ export default function EditarPacienteScreen({ navigation }) {
           correo,
           celular,
           ciudad,
-          eps,
+          id_eps: epsId,
           Rh,
           genero,
           fecha_nacimiento: fechaNacimiento.toISOString().split("T")[0],
@@ -194,7 +241,7 @@ export default function EditarPacienteScreen({ navigation }) {
 
   const validateForm = () => {
     if (
-        !nombre || !apellido || !documento || !celular || !correo || !eps || !Rh || !genero || !ciudad
+        !nombre || !apellido || !documento || !celular || !correo || !epsId || !Rh || !genero || !ciudad
     ) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
       return false;
@@ -248,13 +295,25 @@ export default function EditarPacienteScreen({ navigation }) {
           keyboardType="phone-pad"
           onChangeText={setCelular}
         />
-        <TextInput
-            style={[styles.input, {backgroundColor: theme.background, color: theme.text, borderColor: theme.border}]}
-            placeholder="Ciudad"
-            placeholderTextColor={theme.subtitle}
-            value={ciudad}
-            onChangeText={setCiudad}
-        />
+
+        {/* Picker de Ciudades */}
+        {loadingCiudades ? (
+          <ActivityIndicator color={theme.primary} style={{ marginVertical: 20 }} />
+        ) : (
+          <View style={[styles.picker, {backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1}]}>
+            <Picker
+              selectedValue={ciudad}
+              style={{ color: theme.text }}
+              onValueChange={(itemValue) => setCiudad(itemValue)}
+              dropdownIconColor={theme.subtitle}
+            >
+              <Picker.Item label="Seleccione su ciudad" value="" color={theme.subtitle} />
+              {ciudadesList.map((c) => (
+                <Picker.Item key={c.id} label={c.name} value={c.name} />
+              ))}
+            </Picker>
+          </View>
+        )}
 
         {/* Fecha de nacimiento */}
         <TouchableOpacity
@@ -262,7 +321,7 @@ export default function EditarPacienteScreen({ navigation }) {
           onPress={() => setShowDatePicker(true)}
         >
           <Text style={[styles.dateText, {color: theme.text}]}>
-            {fechaNacimiento.toISOString().split("T")[0]}
+            {fechaNacimiento.toLocaleDateString("es-CO")}
           </Text>
           <Ionicons name="calendar-outline" size={24} color={theme.subtitle} />
         </TouchableOpacity>
@@ -285,21 +344,24 @@ export default function EditarPacienteScreen({ navigation }) {
           onChangeText={setCorreo}
         />
 
-        <View style={[styles.picker, {backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1}]}>
-        <Picker
-          selectedValue={eps}
-          style={{ color: theme.text }}
-          onValueChange={(itemValue) => setEps(itemValue)}
-          dropdownIconColor={theme.subtitle}
-        >
-          <Picker.Item label="Seleccione su EPS" value="" color={theme.subtitle} />
-          <Picker.Item label="Sura" value="Sura" />
-          <Picker.Item label="Sanitas" value="Sanitas" />
-          <Picker.Item label="Nueva EPS" value="Nueva EPS" />
-          <Picker.Item label="Compensar" value="Compensar" />
-          <Picker.Item label="Otra" value="Otra" />
-        </Picker>
-        </View>
+        {/* Picker de EPS */}
+        {loadingEps ? (
+          <ActivityIndicator color={theme.primary} style={{ marginVertical: 20 }} />
+        ) : (
+          <View style={[styles.picker, {backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1}]}>
+            <Picker
+              selectedValue={epsId}
+              style={{ color: theme.text }}
+              onValueChange={(itemValue) => setEpsId(itemValue)}
+              dropdownIconColor={theme.subtitle}
+            >
+              <Picker.Item label="Seleccione su EPS" value={null} color={theme.subtitle} />
+              {epsList.map((e) => (
+                <Picker.Item key={e.id} label={e.nombre} value={e.id} />
+              ))}
+            </Picker>
+          </View>
+        )}
 
         <View style={[styles.picker, {backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1}]}>
         <Picker
@@ -330,7 +392,6 @@ export default function EditarPacienteScreen({ navigation }) {
           <Picker.Item label="Seleccione su género" value="" color={theme.subtitle} />
           <Picker.Item label="Masculino" value="Masculino" />
           <Picker.Item label="Femenino" value="Femenino" />
-          <Picker.Item label="Otro" value="Otro" />
         </Picker>
         </View>
 

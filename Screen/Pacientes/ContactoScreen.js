@@ -1,21 +1,25 @@
 import React, { useContext } from "react";
 import { View, Text, StyleSheet, Linking, TouchableOpacity } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { ThemeContext } from "../../components/ThemeContext"; 
+import { ThemeContext } from "../../components/ThemeContext";
 
 export default function ContactoScreen() {
     const { theme } = useContext(ThemeContext);
 
     const handleCall = () => {
-        Linking.openURL("tel:+573122884645");
+        Linking.openURL("tel:+5787446060");
     };
 
     const handleEmail = () => {
-        Linking.openURL("mailto:clinicaLosAndes@gmail.com"); 
+        Linking.openURL("mailto:citas@clinicadelosandesips.com");
     };
 
+    const handleFacebook = () => {
+        Linking.openURL("https://www.facebook.com/clinicadelosandesips");
+    }
+
     const handleMap = () => {
-        Linking.openURL("https://maps.app.goo.gl/BuJ9m1VDeXDCE43ZA"); 
+        Linking.openURL("https://maps.app.goo.gl/BuJ9m1VDeXDCE43ZA");
     };
 
     return (
@@ -41,7 +45,7 @@ export default function ContactoScreen() {
                         <Text style={[styles.contactLabel, { color: theme.subtitle }]}>Teléfono</Text>
                         <TouchableOpacity onPress={handleCall}>
                             {/* Valor con theme.primary para que se destaque como clickeable */}
-                            <Text style={[styles.contactValue, { color: theme.primary }]}>+57 (312) 288-4645</Text>
+                            <Text style={[styles.contactValue, { color: theme.primary }]}> +57 (874) 460-60</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -55,7 +59,7 @@ export default function ContactoScreen() {
                         <Text style={[styles.contactLabel, { color: theme.subtitle }]}>Correo Electrónico</Text>
                         <TouchableOpacity onPress={handleEmail}>
                             {/* Valor con theme.primary para que se destaque como clickeable */}
-                            <Text style={[styles.contactValue, { color: theme.primary }]}>clinicaLosAndes@gmail.com</Text>
+                            <Text style={[styles.contactValue, { color: theme.primary }]}>citas@clinicadelosandesips.com</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -68,8 +72,10 @@ export default function ContactoScreen() {
                         {/* Label con theme.subtitle */}
                         <Text style={[styles.contactLabel, { color: theme.subtitle }]}>Facebook</Text>
                         {/* Valor con theme.text */}
-                        <Text style={[styles.contactValue, { color: theme.text }]}>Clinica Los Andes</Text>
-                    </View>
+                        <TouchableOpacity onPress={handleFacebook}>
+                            {/* Valor con theme.primary para que se destaque como clickeable */}
+                            <Text style={[styles.contactValue, { color: theme.primary }]}>Clinica De Los Andes Ips</Text>
+                        </TouchableOpacity>                    </View>
                 </View>
 
                 {/* --- ITEM: INSTAGRAM (Se usa un color fijo para las marcas sociales) --- */}

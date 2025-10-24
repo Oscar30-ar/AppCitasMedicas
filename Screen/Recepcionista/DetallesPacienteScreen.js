@@ -33,7 +33,7 @@ export default function DetallePacienteScreen({ route }) {
             <Text style={[styles.value, { color: theme.subtitle }]}>{paciente.Rh || "No registrado"}</Text>
 
             <Text style={[styles.label, { color: theme.text }]}>Eps</Text>
-            <Text style={[styles.value, { color: theme.subtitle }]}>{paciente.eps || "No registrado"}</Text>
+            <Text style={[styles.value, { color: theme.subtitle }]}>{paciente.eps?.nombre || paciente.eps || "No registrado"}</Text>
 
             <Text style={[styles.label, { color: theme.text }]}>Genero</Text>
             <Text style={[styles.value, { color: theme.subtitle }]}>{paciente.genero || "No registrado"}</Text>

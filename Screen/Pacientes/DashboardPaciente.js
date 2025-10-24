@@ -6,7 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import { logout } from "../../Src/Service/AuthService";
 import apiConexion from "../../Src/Service/Conexion";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ProximasCitas } from "../../Src/Service/PacienteService";
+import { ProximasCitasConfirmadas, ProximasCitasPendientes, cancelarCitaPaciente } from "../../Src/Service/PacienteService";
 
 
 export default function DashboardScreen({ setUserToken }) {
@@ -17,32 +17,81 @@ export default function DashboardScreen({ setUserToken }) {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [usuario, setUsuario] = useState(null);
     const [cargando, setCargando] = useState(true);
-    const [citas, setCitas] = useState([]);
-    const [loadingCitas, setLoadingCitas] = useState(true);
+    const [citasConfirmadas, setCitasConfirmadas] = useState([]);
+    const [loadingCitas, setLoadingCitas] = useState(true); // Este loading ahora aplica a ambas listas
+    const [citasPendientes, setCitasPendientes] = useState([]); // Cambiado a un array
     const [refreshing, setRefreshing] = useState(false);
 
     const getStatusColor = (estado) => {
         switch (estado) {
             case "confirmada":
-                return "green"; 
+                return "green";
             case "cancelada":
-                return "red"; 
+                return "red";
             case "pendiente":
-                return "#grey"; 
+                return "#grey";
             default:
                 return theme.primary;
+        }
+    };
+
+    const CargarPerfil = async () => {
+        try {
+            const token = await AsyncStorage.getItem("userToken");
+            const role = await AsyncStorage.getItem("rolUser");
+
+            if (!token || !role) {
+                Alert.alert("No se encontró sesión activa, redirigiendo al login");
+                await AsyncStorage.multiRemove(["userToken", "rolUser"]);
+                setUserToken(null);
+                return;
+            }
+
+            let url = "";
+            if (role === "paciente") url = "/me/paciente";
+            if (role === "doctor") url = "/me/doctor";
+            if (role === "recepcionista") url = "/me/recepcionista";
+
+            const response = await apiConexion.get(url, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            console.log("Perfil cargado:", response.data);
+            setUsuario(response.data);
+
+            await cargarCitas();
+        } catch (error) {
+            console.error("Error al cargar el perfil:", error);
+            Alert.alert("Error", "Ocurrió un error al cargar el perfil.", [{ text: "OK" }]);
+        } finally {
+            setCargando(false);
+            setRefreshing(false);
         }
     };
 
     const cargarCitas = async () => {
         try {
             setLoadingCitas(true);
-            const citasResult = await ProximasCitas();
+            // 💡 CORRECCIÓN: Llamar a ambos servicios en paralelo para obtener citas pendientes y confirmadas.
+            const [pendientesResult, confirmadasResult] = await Promise.all([
+                ProximasCitasPendientes(),
+                ProximasCitasConfirmadas()
+            ]);
 
-            if (citasResult.success && Array.isArray(citasResult.data)) {
-                setCitas(citasResult.data);
+            // Procesar citas pendientes
+            if (pendientesResult.success && Array.isArray(pendientesResult.data)) { // 💡 Ahora guardamos todas las citas pendientes
+                setCitasPendientes(pendientesResult.data);
             } else {
-                Alert.alert("Error de Citas", citasResult.message || "No se pudieron cargar las próximas citas.");
+                console.warn("No se pudieron cargar las citas pendientes:", pendientesResult.message);
+                setCitasPendientes([]);
+            }
+
+            // Procesar citas confirmadas
+            if (confirmadasResult.success && Array.isArray(confirmadasResult.data)) {
+                setCitasConfirmadas(confirmadasResult.data); // Las citas confirmadas se mantienen igual
+            } else {
+                console.warn("No se pudieron cargar las citas confirmadas:", confirmadasResult.message);
+                setCitasConfirmadas([]);
             }
         } catch (error) {
             console.error("Error al cargar las próximas citas:", error);
@@ -54,56 +103,36 @@ export default function DashboardScreen({ setUserToken }) {
     };
 
     useEffect(() => {
-        const CargarPerfil = async () => {
-            try {
-                const token = await AsyncStorage.getItem("userToken");
-                const role = await AsyncStorage.getItem("rolUser");
-
-                if (!token || !role) {
-                    Alert.alert("No se encontró sesión activa, redirigiendo al login");
-                    await AsyncStorage.multiRemove(["userToken", "rolUser"]);
-                    setUserToken(null);
-                    return;
-                }
-
-                let url = "";
-                if (role === "paciente") url = "/me/paciente";
-                if (role === "doctor") url = "/me/doctor";
-                if (role === "recepcionista") url = "/me/recepcionista";
-
-                const response = await apiConexion.get(url, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-
-                console.log("Perfil cargado:", response.data);
-                setUsuario(response.data);
-
-                await cargarCitas();
-            } catch (error) {
-                console.error("Error al cargar el perfil:", error);
-
-                Alert.alert(
-                    "Error",
-                    "Ocurrió un error al cargar el perfil. Redirigiendo al login.",
-                    [
-                        {
-                            text: "OK",
-                            onPress: async () => {
-                                await AsyncStorage.multiRemove(["userToken", "rolUser"]);
-                                setUserToken(null);
-                            },
-                        },
-                    ]
-                );
-            } finally {
-                setCargando(false);
-            }
-        };
-
         CargarPerfil();
     }, []);
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        CargarPerfil();
+    };
+
+    const handleCancelarCita = (citaId) => {
+        Alert.alert(
+            "Confirmar Cancelación",
+            "¿Estás seguro de que deseas cancelar esta cita? Esta acción no se puede deshacer.",
+            [
+                { text: "No", style: "cancel" },
+                {
+                    text: "Sí, Cancelar",
+                    style: "destructive",
+                    onPress: async () => {
+                        const resultado = await cancelarCitaPaciente(citaId);
+                        if (resultado.success) {
+                            Alert.alert("Éxito", resultado.message);
+                            setCitasPendientes(prevCitas => prevCitas.filter(cita => cita.id !== citaId)); // 💡 Filtra la cita cancelada
+                        } else {
+                            Alert.alert("Error", resultado.message);
+                        }
+                    },
+                },
+            ]
+        );
+    };
 
     if (cargando) {
         return (
@@ -147,15 +176,7 @@ export default function DashboardScreen({ setUserToken }) {
         <ScrollView
             contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}
             refreshControl={
-                <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={() => {
-                        setRefreshing(true);
-                        cargarCitas();
-                    }}
-                    colors={[theme.primary]}
-                    tintColor={theme.primary}
-                />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
             }
         >
 
@@ -182,19 +203,74 @@ export default function DashboardScreen({ setUserToken }) {
                 <Text style={[styles.welcomeSubText, { color: theme.subtitle }]}>
                     Revisa tus próximas citas y gestiona tu historial médico.
                 </Text>
+                <TouchableOpacity
+                    style={[styles.quickActionButton, { backgroundColor: theme.primary }]}
+                    onPress={() => navigation.navigate("NuevaCitaPaciente")}
+                >
+                    <Ionicons name="add-circle" size={18} color="white" />
+                    <Text style={styles.quickActionButtonText}>Nueva Cita</Text>
+                </TouchableOpacity>
             </View>
+            {/*cita agendada */}
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Cita Agendada</Text>
+            {loadingCitas ? (
+                <ActivityIndicator size="large" color={theme.primary} style={{ marginVertical: 20 }} />
+            ) : citasPendientes.length > 0 ? ( // 💡 Ahora iteramos sobre el array de citas pendientes
+                citasPendientes.map((cita) => (
+                    <View key={cita.id} style={[styles.citaPendienteCard, { backgroundColor: theme.cardBackground, borderColor: theme.primary }]}>
+                        <View style={styles.appointmentInfo}>
+                            <Text style={[styles.doctorName, { color: theme.text }]}>
+                                Dr. {cita.doctor?.nombre} {cita.doctor?.apellido}
+                            </Text>
+                            <Text style={[styles.descripcion, { color: theme.subtitle, marginTop: 4 }]}>
+                                {cita.descripcion || "Sin descripción"}
+                            </Text>
+                            <View style={styles.appointmentDetails}>
+                                
+                                <Ionicons name="calendar-outline" size={16} color={theme.subtitle} />
+                                <Text style={[styles.infoText, { color: theme.subtitle }]}>{cita.fecha}</Text>
+                                <Ionicons name="time-outline" size={16} color={theme.subtitle} style={{ marginLeft: 15 }} />
+                                <Text style={[styles.infoText, { color: theme.subtitle }]}>{cita.hora}</Text>
+                            </View>
+                        </View>
+                        <View style={styles.buttonContainer}>
+                            <TouchableOpacity
+                                style={[styles.reprogramarButton, { backgroundColor: theme.primary }]}
+                                onPress={() => navigation.navigate('ReprogramarCita', { cita: cita })}
+                            >
+                                <Ionicons name="calendar" size={18} color="#fff" />
+                                <Text style={[styles.buttonText,{ color: "#fcfcfcff" , marginLeft:5}]}>Reprogramar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.cancelButton}
+                                onPress={() => handleCancelarCita(cita.id)}
+                            >
+                                <Ionicons name="close-circle" size={18} color="#fff" />
+                                <Text style={[styles.buttonText, { color: "#fcfcfcff" , marginLeft:5}]}>Cancelar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                ))
+            ) : (
+                <View style={[styles.noCitasCard, { backgroundColor: theme.cardBackground }]}>
+                    <Text style={{ color: theme.subtitle, textAlign: "center" }}>
+                        No tienes ninguna cita pendiente de confirmación.
+                    </Text>
+                </View>
+            )}
+
 
             {/* Próximas citas */}
             <Text style={[styles.sectionTitle, { color: theme.text }]}>Próximas Citas</Text>
             <View style={styles.appointmentsContainer}>
                 {loadingCitas ? (
                     <ActivityIndicator size="large" color={theme.primary} style={{ marginVertical: 20 }} />
-                ) : citas.length === 0 ? (
-                    <Text style={{ color: theme.subtitle, textAlign: "center", padding: 15 }}>
+                ) : citasConfirmadas.length === 0 ? (
+                    <Text style={{ color: theme.subtitle, textAlign: "center", padding: 15, fontStyle: 'italic' }}>
                         No tienes citas confirmadas próximas.
                     </Text>
                 ) : (
-                    citas.map((cita) => (
+                    citasConfirmadas.map((cita) => (
                         <View key={cita.id} style={[styles.appointmentCard, { backgroundColor: theme.cardBackground }]}>
                             <View style={styles.appointmentInfo}>
                                 <Text style={[styles.doctorName, { color: theme.text }]}>
@@ -212,10 +288,10 @@ export default function DashboardScreen({ setUserToken }) {
                                     <Text style={[styles.infoText, { color: theme.subtitle }]}>{cita.consultorio}</Text>
                                 </View>
                             </View>
-                            
-                            <TouchableOpacity 
+
+                            <TouchableOpacity
                                 style={[
-                                    styles.statusBtn, 
+                                    styles.statusBtn,
                                     { backgroundColor: getStatusColor(cita.estado) }
                                 ]}
                             >
@@ -281,6 +357,60 @@ export default function DashboardScreen({ setUserToken }) {
 }
 
 const styles = StyleSheet.create({
+    quickActionRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 10 },
+    quickActionButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+    },
+    quickActionButtonOutline: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+        borderWidth: 1,
+    },
+    quickActionButtonText: { color: "white", fontSize: 14, fontWeight: "600", marginLeft: 5 },
+    citaPendienteCard: {
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 10,
+        borderWidth: 1,
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 15,
+    },
+    reprogramarButton: {
+        flexDirection: 'row',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1,
+        marginRight: 5,
+    },
+    cancelButton: {
+        flexDirection: 'row',
+        backgroundColor: '#ef4444',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1,
+        marginLeft: 5,
+    },
+    noCitasCard: {
+        padding: 20,
+        borderRadius: 12,
+    },
+
     container: {
         flexGrow: 1,
         padding: 20,
@@ -330,19 +460,19 @@ const styles = StyleSheet.create({
     descripcion: { fontSize: 14, marginBottom: 5 },
     appointmentDetails: { flexDirection: "row", alignItems: "center" },
     infoText: { fontSize: 12, marginLeft: 5 },
-    
-    statusBtn: { 
-        paddingVertical: 8, 
-        paddingHorizontal: 12, 
+
+    statusBtn: {
+        paddingVertical: 8,
+        paddingHorizontal: 12,
         borderRadius: 6,
         marginLeft: 10,
     },
-    statusText: { 
-        color: "white", 
-        fontSize: 12, 
-        fontWeight: "bold" 
+    statusText: {
+        color: "white",
+        fontSize: 12,
+        fontWeight: "bold"
     },
-    
+
     actionsGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginHorizontal: -5, marginTop: 10 },
     actionCard: { width: "30%", borderRadius: 12, padding: 15, alignItems: "center", justifyContent: "center", marginBottom: 10 },
     actionCardTitle: { fontSize: 12, fontWeight: "bold", marginTop: 5 },

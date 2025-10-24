@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "../../components/ThemeContext";
-import { agregarMedico, getEspecialidades, obtenerConsultorios } from "../../Src/Service/RecepcionService";
+import { agregarMedico, getEspecialidades, listarConsultoriosDisponibles, obtenerDoctores } from "../../Src/Service/RecepcionService";
 
 export default function AgregarMedicoScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
@@ -32,19 +32,22 @@ export default function AgregarMedicoScreen({ navigation }) {
   // Datos para el Picker
   const [especialidades, setEspecialidades] = useState([]);
   const [consultorios, setConsultorios] = useState([]);
+  const [doctores, setDoctores] = useState([]);
   // Estados de UI
   const [secureText, setSecureText] = useState(true);
   const [loading, setLoading] = useState(false);
   const [loadingEspecialidades, setLoadingEspecialidades] = useState(true);
   const [loadingConsultorios, setLoadingConsultorios] = useState(true);
+  const [loadingDoctores, setLoadingDoctores] = useState(true);
 
-  // Cargar datos para los Pickers (Especialidades y Consultorios)
+  // Cargar datos para los Pickers (Especialidades, Consultorios y Doctores)
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const [resEspecialidades, resConsultorios] = await Promise.all([
+        const [resEspecialidades, resConsultorios, resDoctores] = await Promise.all([
           getEspecialidades(),
-          obtenerConsultorios()
+          listarConsultoriosDisponibles(),
+          obtenerDoctores()
         ]);
 
         if (resEspecialidades.success) setEspecialidades(resEspecialidades.data);
@@ -52,18 +55,22 @@ export default function AgregarMedicoScreen({ navigation }) {
 
         if (resConsultorios.success) setConsultorios(resConsultorios.data);
         else Alert.alert("Error", "No se pudieron cargar los consultorios.");
+
+        if (resDoctores.success) setDoctores(resDoctores.data);
+        else Alert.alert("Error", "No se pudieron cargar los doctores.");
       } catch (error) {
         Alert.alert("Error de Conexión", "No se pudieron cargar los datos necesarios para el formulario.");
       }
       setLoadingEspecialidades(false);
       setLoadingConsultorios(false);
+      setLoadingDoctores(false);
     };
     cargarDatos();
   }, []);
 
   const handleAgregar = async () => {
     if (!validateForm()) return;
-
+  
     setLoading(true);
     try {
       const medicoData = {
@@ -228,7 +235,7 @@ export default function AgregarMedicoScreen({ navigation }) {
       </View>
     </ScrollView>
 
-    
+
   );
 }
 

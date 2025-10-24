@@ -16,6 +16,10 @@ import EditarConsultorioScreen from "../../../Screen/Recepcionista/EditarConsult
 import AgregarEspecialidadScreen from "../../../Screen/Recepcionista/AgregarEspecialidadScreen";
 import EditarEspecialidadScreen from "../../../Screen/Recepcionista/EditarEspecialidadScreen";
 import GestionEspecialidadesScreen from "../../../Screen/Recepcionista/GestionEspecialidadesScreen";
+import AgregarEpsScreen from "../../../Screen/Recepcionista/AgregarEpsScreen"; // New import
+import GestionEpsScreen from "../../../Screen/Recepcionista/GestionEpsScreen";
+import EditarEpsScreen from "../../../Screen/Recepcionista/EditarEpsScreen";
+import CitasPendientesScreen from "../../../Screen/Recepcionista/CitasPendientesScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -55,7 +59,7 @@ export default function Recepcionista_Stack({ setUserToken }) {
             <Stack.Screen
                 name="DetallePaciente"
                 component={DetallePacienteScreen}
-                options={{ title: "Historial del Paciente" }}
+                options={{ title: "Detalle del Paciente" }}
             />
             <Stack.Screen
                 name="GestionMedicos"
@@ -107,6 +111,26 @@ export default function Recepcionista_Stack({ setUserToken }) {
                 name="EditarEspecialidad"
                 component={EditarEspecialidadScreen}
                 options={{ title: "Editar Especialidad" }}
+            />
+            <Stack.Screen
+                name="AgregarEps"
+                component={AgregarEpsScreen}
+                options={{ title: "Agregar EPS" }}
+            />
+            <Stack.Screen
+                name="GestionEps"
+                component={GestionEpsScreen}
+                options={{ title: "Gestión de Eps" }}
+            />
+            <Stack.Screen
+                name="EditarEps"
+                component={EditarEpsScreen}
+                options={{ title: "Editar EPS" }}
+            />
+            <Stack.Screen
+                name="CitasPendientes"
+                component={CitasPendientesScreen}
+                options={{ title: "Citas Pendientes" }}
             />
 
         </Stack.Navigator>

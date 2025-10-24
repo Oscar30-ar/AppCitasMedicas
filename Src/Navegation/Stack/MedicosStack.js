@@ -5,6 +5,9 @@ import EditarMedicoScreen from "../../../Screen/Medicos/EditarMedicoScreen";
 import MisPacientesScreen from "../../../Screen/Medicos/MisPacientesScreen";
 import HistorialPacienteScreen from "../../../Screen/Medicos/HistorialPacienteScreen";
 import AgendaHoyMedicoScreen from "../../../Screen/Medicos/AgendaHoyMedicoScreen";
+import MiHorarioScreen from "../../../Screen/Medicos/MiHorarioScreen";
+import AgregarHorarioScreen from "../../../Screen/Medicos/AgregarHorarioScreen";
+import EditarHorarioScreen from "../../../Screen/Medicos/EditarHorarioScreen";
 
 
 const Stack = createStackNavigator();
@@ -42,6 +45,21 @@ export default function Medico_Stack({ setUserToken }) {
                 name="AgendaHoy"
                 component={AgendaHoyMedicoScreen}
                 options={{ title: "Agenda de Hoy" }}
+            />
+            <Stack.Screen
+                name="MiHorario"
+                component={MiHorarioScreen}
+                options={{ title: "Mi Horario" }}
+            />
+            <Stack.Screen
+                name="AgregarHorario"
+                component={AgregarHorarioScreen}
+                options={{ title: "Agregar Horario" }}
+            />
+            <Stack.Screen
+                name="EditarHorario"
+                component={EditarHorarioScreen}
+                options={{ title: "Agregar Horario" }}
             />
 
         </Stack.Navigator>

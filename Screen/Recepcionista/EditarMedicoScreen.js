@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "../../components/ThemeContext";
-import { listarEspecialidades, listarDoctorPorId, actualizarMedico } from "../../Src/Service/RecepcionService";
+import { listarEspecialidades, listarDoctorPorId, actualizarMedico, obtenerConsultorios } from "../../Src/Service/RecepcionService";
 
 export default function EditarMedicoScreen({ route, navigation }) {
   const { theme } = useContext(ThemeContext);
@@ -24,32 +24,38 @@ export default function EditarMedicoScreen({ route, navigation }) {
   const [celular, setCelular] = useState("");
   const [correo, setCorreo] = useState("");
   const [especialidadId, setEspecialidadId] = useState(null);
+  const [consultorioId, setConsultorioId] = useState(null);
 
   // Datos para el Picker
   const [especialidades, setEspecialidades] = useState([]);
+  const [consultorios, setConsultorios] = useState([]);
 
   // Estados de UI
-  const [loadingInitial, setLoadingInitial] = useState(true);
-  const [loadingUpdate, setLoadingUpdate] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Cargar datos iniciales del médico y especialidades
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const [resDoctor, resEspecialidades] = await Promise.all([
+        const [resDoctor, resEspecialidades, resConsultorios] = await Promise.all([
           listarDoctorPorId(doctorId),
           listarEspecialidades(),
+          obtenerConsultorios(),
         ]);
 
         if (resDoctor.success) {
           const doctor = resDoctor.data;
           setNombre(doctor.nombre);
           setApellido(doctor.apellido);
-          setDocumento(doctor.documento);
+          setDocumento(String(doctor.documento)); // Convertir a string para el TextInput
           setCelular(doctor.celular);
           setCorreo(doctor.correo);
           if (doctor.especialidades && doctor.especialidades.length > 0) {
             setEspecialidadId(doctor.especialidades[0].id);
+          }
+          if (doctor.consultorio) {
+            setConsultorioId(doctor.consultorio.id);
           }
         } else {
           Alert.alert("Error", "No se pudieron cargar los datos del médico.");
@@ -60,23 +66,27 @@ export default function EditarMedicoScreen({ route, navigation }) {
           setEspecialidades(resEspecialidades.data);
         }
 
+        if (resConsultorios.success) {
+          setConsultorios(resConsultorios.data);
+        }
+
       } catch (error) {
         console.error("Error cargando datos para editar médico:", error);
         Alert.alert("Error", "Ocurrió un error inesperado.");
       } finally {
-        setLoadingInitial(false);
+        setLoading(false);
       }
     };
     cargarDatos();
   }, [doctorId]);
 
   const handleGuardarCambios = async () => {
-    if (!nombre || !apellido || !documento || !celular || !correo || !especialidadId) {
+    if (!nombre || !apellido || !documento || !celular || !correo || !especialidadId || !consultorioId) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
       return;
     }
 
-    setLoadingUpdate(true);
+    setIsUpdating(true);
     try {
       const medicoData = {
         nombre,
@@ -85,6 +95,7 @@ export default function EditarMedicoScreen({ route, navigation }) {
         correo,
         celular,
         especialidades: [especialidadId],
+        id_consultorio: consultorioId,
       };
 
       const result = await actualizarMedico(doctorId, medicoData);
@@ -102,13 +113,13 @@ export default function EditarMedicoScreen({ route, navigation }) {
       console.error("Error inesperado al actualizar médico:", error);
       Alert.alert("Error", "Ocurrió un error inesperado.");
     } finally {
-      setLoadingUpdate(false);
+      setIsUpdating(false);
     }
   };
 
   const styles = getStyles(theme);
 
-  if (loadingInitial) {
+  if (loading && !isUpdating) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={theme.primary} />
@@ -125,7 +136,7 @@ export default function EditarMedicoScreen({ route, navigation }) {
         <View style={styles.form}>
           <TextInput style={styles.input} placeholder="Nombre" placeholderTextColor={theme.subtitle} value={nombre} onChangeText={setNombre} />
           <TextInput style={styles.input} placeholder="Apellido" placeholderTextColor={theme.subtitle} value={apellido} onChangeText={setApellido} />
-          <TextInput style={styles.input} placeholder="Documento" placeholderTextColor={theme.subtitle} value={documento} onChangeText={setDocumento} keyboardType="numeric" />
+          <TextInput style={[styles.input]} placeholder="Documento" placeholderTextColor={theme.subtitle} value={documento}/>
           <TextInput style={styles.input} placeholder="Teléfono" placeholderTextColor={theme.subtitle} value={celular} onChangeText={setCelular} keyboardType="phone-pad" />
           <TextInput style={styles.input} placeholder="Correo electrónico" placeholderTextColor={theme.subtitle} value={correo} onChangeText={setCorreo} keyboardType="email-address" autoCapitalize="none" />
 
@@ -143,12 +154,26 @@ export default function EditarMedicoScreen({ route, navigation }) {
             </Picker>
           </View>
 
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={consultorioId}
+              onValueChange={(itemValue) => setConsultorioId(itemValue)}
+              style={{ color: theme.text }}
+              dropdownIconColor={theme.text}
+            >
+              <Picker.Item label="Seleccione un consultorio" value={null} />
+              {consultorios.map((c) => (
+                <Picker.Item key={c.id} label={c.nombre} value={c.id} />
+              ))}
+            </Picker>
+          </View>
+
           <TouchableOpacity
             style={[styles.saveBtn, { backgroundColor: theme.primary }]}
             onPress={handleGuardarCambios}
-            disabled={loadingUpdate}
+            disabled={isUpdating}
           >
-            {loadingUpdate ? (
+            {isUpdating ? (
               <ActivityIndicator color="white" />
             ) : (
               <Text style={styles.saveBtnText}>Guardar Cambios</Text>

@@ -312,6 +312,12 @@ export default function DashboardRecepcionista({ setUserToken }) {
                     onPress={() => navigation.navigate("CitasHoy")}
                 />
                 <ModuleCard
+                    title="Citas Pendientes"
+                    subtitle="Administrar las citas pendientes"
+                    icon="medkit-outline"
+                    onPress={() => navigation.navigate("CitasPendientes")}
+                />
+                <ModuleCard
                     title="Médicos"
                     subtitle="Gestionar personal"
                     icon="medical-outline"
@@ -334,6 +340,12 @@ export default function DashboardRecepcionista({ setUserToken }) {
                     subtitle="Administrar los consultorios"
                     icon="business-outline"
                     onPress={() => navigation.navigate("GestionConsultorios")}
+                />
+                <ModuleCard
+                    title="Eps"
+                    subtitle="Administrar las EPS"
+                    icon="medkit-outline"
+                    onPress={() => navigation.navigate("GestionEps")}
                 />
             </View>
 

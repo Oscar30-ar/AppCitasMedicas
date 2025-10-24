@@ -14,8 +14,8 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "../../components/ThemeContext";
-import ThemeSwitcher from "../../components/ThemeSwitcher";
-import { registrarPaciente } from "../../Src/Service/PacienteService";
+import { registrarPaciente, obtenerEpsPublico } from "../../Src/Service/PacienteService";
+import { useEffect } from "react";
 
 export default function RegisterPatientScreen({ navigation }) {
   const { theme } = useContext(ThemeContext);
@@ -33,14 +33,74 @@ export default function RegisterPatientScreen({ navigation }) {
   const [genero, setGenero] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState(new Date());
 
+
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [secureText, setSecureText] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [epsList, setEpsList] = useState([]);
+  const [loadingEps, setLoadingEps] = useState(true);
+
+
+  // listar ciudades(API)
+  const [ciudadesList, setCiudadesList] = useState([]);
+  const [loadingCiudades, setLoadingCiudades] = useState(true);
+
+  // 🔹 Solo Boyacá
+  const departamentosPermitidos = [7];
+
+  useEffect(() => {
+    const cargarCiudades = async () => {
+      try {
+        setLoadingCiudades(true);
+        const res = await fetch("https://api-colombia.com/api/v1/city");
+        if (!res.ok) throw new Error("Error al obtener las ciudades");
+
+        const data = await res.json();
+
+        // 🔹 Filtrar las ciudades que pertenecen a Boyacá
+        const filtradas = data.filter(ciudad =>
+          departamentosPermitidos.includes(ciudad.departmentId)
+        );
+
+        setCiudadesList(filtradas);
+      } catch (error) {
+        console.error("Error cargando ciudades:", error);
+        Alert.alert("Error", "No se pudieron cargar las ciudades de Boyacá.");
+      } finally {
+        setLoadingCiudades(false);
+      }
+    };
+
+    cargarCiudades();
+  }, []);
+
+
+
+
+  useEffect(() => {
+    const cargarDatos = async () => {
+      setLoadingEps(true);
+      const response = await obtenerEpsPublico();
+      if (response.success) {
+        setEpsList(response.data);
+      } else {
+        Alert.alert("Error", "No se pudieron cargar las EPS disponibles.");
+      }
+      setLoadingEps(false);
+    };
+
+    cargarDatos();
+  }, []);
 
   const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || fechaNacimiento;
+    if (selectedDate) {
+      const adjustedDate = new Date(
+        selectedDate.getTime() + selectedDate.getTimezoneOffset() * 60000
+      );
+      setFechaNacimiento(adjustedDate);
+    }
     setShowDatePicker(Platform.OS === "ios");
-    setFechaNacimiento(currentDate);
   };
 
   const handleRegister = async () => {
@@ -53,10 +113,9 @@ export default function RegisterPatientScreen({ navigation }) {
           documento,
           correo,
           clave,
-          confirmarClave,
           celular,
           ciudad,
-          eps,
+          id_eps: eps,
           Rh,
           genero,
           fecha_nacimiento: fechaNacimiento.toISOString().split("T")[0],
@@ -71,14 +130,17 @@ export default function RegisterPatientScreen({ navigation }) {
           Alert.alert("Error de registro", result.message);
         }
       } catch (error) {
-        console.error("Error inesperado en registro", error);
-        Alert.alert(
-          "Error",
-          "Ocurrió un error inesperado durante el registro."
-        );
-      } finally {
-        setLoading(false);
+        console.error("Error inesperado en registro:", error.response?.data || error.message);
+
+        if (error.response?.status === 422) {
+          const errors = error.response.data.errors;
+          const firstError = Object.values(errors)[0][0];
+          Alert.alert("Error de validación", firstError);
+        } else {
+          Alert.alert("Error", "Ocurrió un error inesperado durante el registro.");
+        }
       }
+
     }
   };
 
@@ -93,7 +155,7 @@ export default function RegisterPatientScreen({ navigation }) {
       !confirmarClave ||
       !eps ||
       !Rh ||
-      !genero||
+      !genero ||
       !ciudad
     ) {
       Alert.alert("Error de registro", "Todos los campos son obligatorios.");
@@ -167,6 +229,14 @@ export default function RegisterPatientScreen({ navigation }) {
       borderColor: theme.border,
       marginBottom: 12,
     },
+    pickerContainer: {
+      backgroundColor: theme.background,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginBottom: 12,
+      justifyContent: 'center',
+    },
     registerBtn: {
       backgroundColor: theme.primary,
       padding: 15,
@@ -236,13 +306,6 @@ export default function RegisterPatientScreen({ navigation }) {
             keyboardType="phone-pad"
             onChangeText={setCelular}
           />
-          <TextInput
-              style={styles.input}
-              placeholder="Ciudad"
-              placeholderTextColor={theme.subtitle}
-              value={ciudad}
-              onChangeText={setCiudad}
-          />
 
           {/* Fecha de nacimiento */}
           <TouchableOpacity
@@ -250,7 +313,7 @@ export default function RegisterPatientScreen({ navigation }) {
             onPress={() => setShowDatePicker(true)}
           >
             <Text style={styles.dateText}>
-              {fechaNacimiento.toISOString().split("T")[0]}
+              {fechaNacimiento.toLocaleDateString("es-CO")}
             </Text>
             <Ionicons name="calendar-outline" size={24} color={theme.subtitle} />
           </TouchableOpacity>
@@ -310,48 +373,74 @@ export default function RegisterPatientScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
+                    {/**Picker de ciudades */}
+          {loadingCiudades
+            ? <ActivityIndicator color={theme.primary} style={{ marginVertical: 20 }} />
+            : (
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={ciudad}
+                  style={{ color: theme.text }}
+                  onValueChange={(itemValue) => setCiudad(itemValue)}
+                >
+                  <Picker.Item label="Seleccione su ciudad" value="" />
+                  {ciudadesList.map((c, idx) => (
+                    <Picker.Item key={idx} label={c.name || c.city || c.nombre} value={c.name || c.city || c.nombre} />
+                  ))}
+                </Picker>
+              </View>
+            )
+          }
+
           {/* Select EPS */}
-          <Picker
-            selectedValue={eps}
-            style={styles.picker}
-            onValueChange={(itemValue) => setEps(itemValue)}
-          >
-            <Picker.Item label="Seleccione su EPS" value="" />
-            <Picker.Item label="Sura" value="Sura" />
-            <Picker.Item label="Sanitas" value="Sanitas" />
-            <Picker.Item label="Nueva EPS" value="Nueva EPS" />
-            <Picker.Item label="Compensar" value="Compensar" />
-            <Picker.Item label="Otra" value="Otra" />
-          </Picker>
+          {loadingEps ? (
+            <ActivityIndicator color={theme.primary} style={{ marginVertical: 20 }} />
+          ) : (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={eps}
+                style={{ color: theme.text }}
+                onValueChange={(itemValue) => setEps(itemValue)}
+              >
+                <Picker.Item label="Seleccione su EPS" value="" />
+                {epsList.map((item) => (
+                  <Picker.Item key={item.id} label={item.nombre} value={item.id} />
+                ))}
+              </Picker>
+            </View>
+          )}
 
           {/* Select Rh */}
-          <Picker
-            selectedValue={Rh}
-            style={styles.picker}
-            onValueChange={(itemValue) => setRh(itemValue)}
-          >
-            <Picker.Item label="Seleccione su tipo de sangre" value="" />
-            <Picker.Item label="A+" value="A+" />
-            <Picker.Item label="A-" value="A-" />
-            <Picker.Item label="B+" value="B+" />
-            <Picker.Item label="B-" value="B-" />
-            <Picker.Item label="AB+" value="AB+" />
-            <Picker.Item label="AB-" value="AB-" />
-            <Picker.Item label="O+" value="O+" />
-            <Picker.Item label="O-" value="O-" />
-          </Picker>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={Rh}
+              style={{ color: theme.text }}
+              onValueChange={(itemValue) => setRh(itemValue)}
+            >
+              <Picker.Item label="Seleccione su tipo de sangre" value="" />
+              <Picker.Item label="A+" value="A+" />
+              <Picker.Item label="A-" value="A-" />
+              <Picker.Item label="B+" value="B+" />
+              <Picker.Item label="B-" value="B-" />
+              <Picker.Item label="AB+" value="AB+" />
+              <Picker.Item label="AB-" value="AB-" />
+              <Picker.Item label="O+" value="O+" />
+              <Picker.Item label="O-" value="O-" />
+            </Picker>
+          </View>
 
           {/* Select Género */}
-          <Picker
-            selectedValue={genero}
-            style={styles.picker}
-            onValueChange={(itemValue) => setGenero(itemValue)}
-          >
-            <Picker.Item label="Seleccione su género" value="" />
-            <Picker.Item label="Masculino" value="Masculino" />
-            <Picker.Item label="Femenino" value="Femenino" />
-            <Picker.Item label="Otro" value="Otro" />
-          </Picker>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={genero}
+              style={{ color: theme.text }}
+              onValueChange={(itemValue) => setGenero(itemValue)}
+            >
+              <Picker.Item label="Seleccione su género" value="" />
+              <Picker.Item label="Masculino" value="Masculino" />
+              <Picker.Item label="Femenino" value="Femenino" />
+            </Picker>
+          </View>
 
           {/* Botones */}
           <TouchableOpacity
@@ -376,7 +465,6 @@ export default function RegisterPatientScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
-      <ThemeSwitcher />
     </ScrollView>
   );
 }

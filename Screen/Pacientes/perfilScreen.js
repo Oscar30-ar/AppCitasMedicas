@@ -1,55 +1,59 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import BottonComponent from "../../components/BottonComponent";
 import { ThemeContext } from "../../components/ThemeContext";
-import ThemeSwitcher from "../../components/ThemeSwitcher";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiConexion from "../../Src/Service/Conexion";
 import { useNavigation } from "@react-navigation/native";
 
 export default function PerfilScreen() {
-   const navigation = useNavigation();
+  const navigation = useNavigation();
   const { theme } = useContext(ThemeContext);
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const cargarPerfil = async () => {
-      try {
-        const token = await AsyncStorage.getItem("userToken");
-        const role = await AsyncStorage.getItem("rolUser");
+  const cargarPerfil = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const role = await AsyncStorage.getItem("rolUser");
 
-        if (!token || !role) {
-          Alert.alert("Error de autenticación", "No se encontró sesión activa, por favor, inicia sesión de nuevo.");
-          await AsyncStorage.multiRemove(["userToken", "rolUser"]);
-          navigation.navigate("Login");
-          return;
-        }
-
-        let url = "";
-        if (role === "paciente") url = "/me/paciente";
-        if (role === "doctor") url = "/me/doctor";
-        if (role === "recepcionista") url = "/me/recepcionista";
-
-        const response = await apiConexion.get(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        console.log("Perfil cargado:", response.data);
-        setUsuario(response.data.user || response.data);
-      } catch (error) {
-        console.error("Error al cargar el perfil", error);
-        Alert.alert("Error", "Ocurrió un error al cargar el perfil.");
+      if (!token || !role) {
+        Alert.alert("Error de autenticación", "Por favor inicia sesión nuevamente.");
         await AsyncStorage.multiRemove(["userToken", "rolUser"]);
         navigation.navigate("Login");
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
+      let url = "";
+      if (role === "paciente") url = "/me/paciente";
+      if (role === "doctor") url = "/me/doctor";
+      if (role === "recepcionista") url = "/me/recepcionista";
+
+      const response = await apiConexion.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data?.data) setUsuario(response.data.data);
+      else setUsuario(response.data.user || response.data);
+    } catch (error) {
+      console.error("Error al cargar el perfil:", error);
+      Alert.alert("Error", "No se pudo cargar el perfil. Inténtalo más tarde.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
     cargarPerfil();
   }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    cargarPerfil();
+  };
 
   if (loading) {
     return (
@@ -69,39 +73,56 @@ export default function PerfilScreen() {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
-
-      {/* HEADER con avatar */}
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+      }
+    >
+      {/* HEADER */}
       <View style={styles.header}>
         <Ionicons name="person-circle-outline" size={100} color={theme.primary} />
-        <Text style={[styles.profileName, { color: theme.text }]}>{usuario.nombre} {usuario.apellido}</Text>
+        <Text style={[styles.profileName, { color: theme.text }]}>
+          {usuario.nombre} {usuario.apellido}
+        </Text>
       </View>
 
-      {/* Datos personales */}
+      {/* DATOS PERSONALES */}
       <View style={[styles.card, { backgroundColor: theme.cardBackground }]}>
         <Text style={[styles.sectionTitle, { color: theme.primary }]}>Datos Personales</Text>
         <InfoRow icon="id-card" lib="FontAwesome5" label="Documento" value={usuario.documento} theme={theme} />
         <InfoRow icon="mail-outline" lib="Ionicons" label="Correo" value={usuario.correo} theme={theme} />
         <InfoRow icon="call-outline" lib="Ionicons" label="Teléfono" value={usuario.celular || "No registrado"} theme={theme} />
-        <InfoRow icon="home" lib="FontAwesome5" label="Dirección" value={usuario.ciudad || "No registrada"} theme={theme} />
+        <InfoRow icon="home" lib="FontAwesome5" label="Ciudad" value={usuario.ciudad || "No registrada"} theme={theme} />
       </View>
 
-      {/* Información médica o extra */}
+      {/* INFORMACIÓN ADICIONAL */}
       <View style={[styles.card, { backgroundColor: theme.cardBackground }]}>
         <Text style={[styles.sectionTitle, { color: theme.primary }]}>Información Adicional</Text>
-        <InfoRow icon="calendar-outline" lib="Ionicons" label="Fecha de nacimiento" value={usuario.fecha_nacimiento?.split("T")[0]} theme={theme} />
+        <InfoRow
+          icon="calendar-outline"
+          lib="Ionicons"
+          label="Fecha de nacimiento"
+          value={usuario.fecha_nacimiento?.split("T")[0] || "No disponible"}
+          theme={theme}
+        />
         <InfoRow icon="tint" lib="FontAwesome5" label="Rh" value={usuario.Rh || "No disponible"} theme={theme} />
-        <InfoRow icon="hospital" lib="FontAwesome5" label="Eps" value={usuario.eps || "No disponible"} theme={theme} />
+        <InfoRow
+          icon="hospital"
+          lib="FontAwesome5"
+          label="EPS"
+          value={usuario.eps?.nombre || "No disponible"}
+          theme={theme}
+        />
         <InfoRow icon="transgender-outline" lib="Ionicons" label="Género" value={usuario.genero || "No disponible"} theme={theme} />
       </View>
 
-      {/* Botón editar */}
+      {/* BOTÓN EDITAR PERFIL */}
       <BottonComponent
         title="Editar Perfil"
-        onPress={() => navigation.navigate("EditarPaciente" )} 
+        onPress={() => navigation.navigate("EditarPaciente")}
         style={[styles.editButton, { backgroundColor: theme.primary }]}
       />
-
     </ScrollView>
   );
 }
@@ -137,7 +158,6 @@ const styles = StyleSheet.create({
   infoLabel: { fontWeight: "600", marginLeft: 8, width: 130 },
   infoValue: { flex: 1 },
   editButton: { marginBottom: 30 },
-  themeSwitcherContainer: { alignItems: "center", marginTop: 10, marginBottom: 40 },
   loadingText: { marginTop: 10 },
   errorText: { fontSize: 16, textAlign: "center" },
 });

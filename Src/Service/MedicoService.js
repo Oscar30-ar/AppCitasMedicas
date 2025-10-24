@@ -167,3 +167,61 @@ export const changePasswordMedico = async (current_password, new_password) => {
         };
     }
 };
+
+//Listar los horarios del médico 
+export const listarHorarios = async () => {
+  try {
+    const response = await apiConexion.get("/ListarHorario");
+    return { success: true, data: response.data.data };
+  } catch (error) {
+    console.error("Error al listar horarios:", error);
+    return {
+      success: false,
+      message:
+        error.response?.data?.message || "Error al obtener los horarios.",
+    };
+  }
+};
+
+//  Crear horario
+export const crearHorario = async (data) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const res = await apiConexion.post("/CrearHorarios", data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return { success: true, message: res.data.message };
+  } catch (error) {
+    console.error("Error creando horario:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error al crear el horario." };
+  }
+};
+
+
+// Editar horario
+export const editarHorario = async (id, data) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const res = await apiConexion.put(`/EditarHorario/${id}`, data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return { success: true, message: res.data.message };
+  } catch (error) {
+    console.error("Error editando horario:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error" };
+  }
+};
+
+// Eliminar horario
+export const eliminarHorario = async (id) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const res = await apiConexion.delete(`/EliminarHorario/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return { success: true, message: res.data.message };
+  } catch (error) {
+    console.error("Error eliminando horario:", error.response?.data || error.message);
+    return { success: false, message: error.response?.data?.message || "Error" };
+  }
+};

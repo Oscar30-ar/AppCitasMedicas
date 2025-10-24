@@ -13,11 +13,25 @@ export const registrarPaciente = async (userData) => {
     }
 };
 
+// Obtener todas las EPS (público)
+export const obtenerEpsPublico = async () => {
+    try {
+        // Asumiendo que el endpoint /eps es público o se ajustará para serlo
+        const response = await apiConexion.get("/listarEpsPublico");
+        if (response.status === 200 && response.data.success) {
+            return { success: true, data: response.data.data };
+        }
+        return { success: false, data: [], message: "No se pudieron cargar las EPS." };
+    } catch (error) {
+        console.error("Error en obtenerEpsPublico:", error.response?.data || error.message);
+        return { success: false, message: "Error al cargar las EPS." };
+    }
+};
 
 //Editar Perfil Paciente
 export const updatePacientePerfil = async (userData) => {
     try {
-        const response = await apiConexion.put('/me/paciente', userData);
+        const response = await apiConexion.put('/editar/me/paciente', userData);
         return { success: true, message: " Perfil actualizado correctamente, por favor inicie sesión nuevamente para ver los cambios.", user: response.data };
     } catch (error) {
         console.error("Error en updatePacientePerfil:", error);
@@ -29,27 +43,42 @@ export const updatePacientePerfil = async (userData) => {
 //Historial Medico del Paciente 
 export const HistorialMedico = async () => {
     try {
-        const response = await apiConexion.get('/citas/historial-paciente'); 
+        const response = await apiConexion.get('/citas/historial-paciente');
         return { success: true, data: response.data };
     } catch (error) {
         console.error("Error al obtener historial médico:", error);
-        return { 
-            success: false, 
-            message: "No se pudo cargar el historial médico." 
+        return {
+            success: false,
+            message: "No se pudo cargar el historial médico."
         };
     }
 };
 
-//Proximas citas 
-export const ProximasCitas = async () => {
+//Proximas citas pendientes
+export const ProximasCitasPendientes = async () => {
     try {
-        const response = await apiConexion.get('/citas/proximas'); 
+        const response = await apiConexion.get('/citas/proximas/pendientes');
         return { success: true, data: response.data };
     } catch (error) {
         console.error("Error al obtener próximas citas:", error);
-        return { 
-            success: false, 
-            message: "No se pudieron cargar las próximas citas." 
+        return {
+            success: false,
+            message: "No se pudieron cargar las próximas citas."
+        };
+    }
+};
+
+
+//Proximas citas confirmadas
+export const ProximasCitasConfirmadas = async () => {
+    try {
+        const response = await apiConexion.get('/citas/proximas/confirmadas');
+        return { success: true, data: response.data };
+    } catch (error) {
+        console.error("Error al obtener próximas citas:", error);
+        return {
+            success: false,
+            message: "No se pudieron cargar las próximas citas."
         };
     }
 };
@@ -109,3 +138,98 @@ export async function eliminarCuentaPaciente() {
         return { success: false, message: errorMessage };
     }
 }
+
+// 🔹 Crear cita
+export const crearCita = async (data) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await apiConexion.post("/paciente/crear-cita", data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    const msg =
+      error.response?.data?.message ||
+      "Ocurrió un error al crear la cita. Inténtalo más tarde.";
+    return { success: false, message: msg };
+  }
+};
+
+// 🔹 Listar doctores
+export const listardoc = async () => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await apiConexion.get("/listar/doctores/agendar-cita", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    // 💡 CORRECCIÓN: La respuesta de la API para doctores está directamente en `response.data`.
+    if (response.status === 200 && response.data.success) {
+      return { success: true, data: response.data.data }; // La API devuelve { success: true, data: [...] }
+    }
+    return { success: false, data: [], message: "No se pudieron cargar los doctores." };
+  } catch (error) {
+    console.error("Error listando doctores:", error.response?.data || error.message);
+    return { success: false, data: [], message: error.response?.data?.message || "Error al listar doctores" };
+  }
+};
+
+// 🔹 Verificar disponibilidad del doctor
+export const verificarDisponibilidad = async (doctorId, fecha, hora) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await apiConexion.get(`/disponibilidad/agendar-cita/${doctorId}`, {
+      params: { fecha, hora },
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return {
+      success: true,
+      disponible: response.data.disponible,
+      mensaje: response.data.mensaje,
+    };
+  } catch (error) {
+    console.error("Error verificando disponibilidad:", error);
+    return {
+      success: false,
+      disponible: false,
+      mensaje:
+        error.response?.data?.message || "No se pudo verificar la disponibilidad",
+    };
+  }
+};
+
+// 🔹 Reprogramar cita del paciente
+export const reprogramarCitaPaciente = async (citaId, datosReprogramacion) => {
+  try {
+    // El interceptor de Axios se encargará de añadir el token de autorización
+    const response = await apiConexion.put(`/paciente/citas/${citaId}/reprogramar`, datosReprogramacion);
+    if (response.data.success) {
+      return { success: true, message: response.data.message || "Cita reprogramada correctamente." };
+    }
+    return { success: false, message: response.data.message || "No se pudo reprogramar la cita." };
+  } catch (error) {
+    console.error("Error en el servicio de reprogramarCitaPaciente:", error.response?.data || error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Ocurrió un error al intentar reprogramar la cita.",
+    };
+  }
+};
+
+// 🔹 Cancelar cita del paciente
+export const cancelarCitaPaciente = async (citaId) => {
+  try {
+    // El interceptor de Axios se encargará de añadir el token de autorización
+    const response = await apiConexion.put(`/paciente/citas/${citaId}/estado`, { estado: 'cancelada' });
+    if (response.status === 200) {
+      return { success: true, message: response.data.message || "Cita cancelada correctamente." };
+    }
+    return { success: false, message: "No se pudo procesar la cancelación." };
+  } catch (error) {
+    console.error("Error en el servicio de cancelarCitaPaciente:", error.response?.data || error.message);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Ocurrió un error al intentar cancelar la cita.",
+    };
+  }
+};

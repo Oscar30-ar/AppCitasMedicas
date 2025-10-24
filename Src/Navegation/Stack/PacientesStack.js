@@ -6,6 +6,8 @@ import ContactoScreen from "../../../Screen/Pacientes/ContactoScreen";
 import CambiarContrasenaScreen from "../../../Screen/Pacientes/CambiarContrasenaScreen";
 import TerminosUsoScreen from "../../../Screen/Pacientes/TerminosUsoScreen";
 import EditarPacienteScreen from "../../../Screen/Pacientes/EditarPacienteScreen";
+import NuevaCitaPacienteScreen from "../../../Screen/Pacientes/NuevaCitaPacienteScreen";
+import ReprogramarCitaScreen from "../../../Screen/Pacientes/ReprogramarCitaScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -55,6 +57,17 @@ export default function Pacientes_Stack({ setUserToken }){
                 name="EditarPaciente"
                 component={EditarPacienteScreen}
                 options={{title: "Editar Perfil"}}
+            />
+
+            <Stack.Screen
+                name="NuevaCitaPaciente"
+                component={NuevaCitaPacienteScreen}
+                options={{title: "Agendar Cita"}}
+            />
+            <Stack.Screen
+                name="ReprogramarCita"
+                component={ReprogramarCitaScreen}
+                options={{title: "Reprogramar Cita"}}
             />
 
         </Stack.Navigator>

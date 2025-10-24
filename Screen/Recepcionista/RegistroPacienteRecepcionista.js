@@ -14,7 +14,8 @@ import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { ThemeContext } from "../../components/ThemeContext";
-import { registrarPaciente } from "../../Src/Service/PacienteService";
+import { registrarPaciente, obtenerEpsPublico } from "../../Src/Service/PacienteService";
+import { useEffect } from "react";
 
 export default function RegistroPacienteRecepcionista({ navigation }) {
   const { theme } = useContext(ThemeContext);
@@ -27,20 +28,75 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
   const [ciudad, setCiudad] = useState("");
   const [clave, setClave] = useState("");
   const [confirmarClave, setConfirmarClave] = useState("");
-  const [eps, setEps] = useState("");
   const [Rh, setRh] = useState("");
   const [genero, setGenero] = useState("");
   const [fechaNacimiento, setFechaNacimiento] = useState(new Date());
-
+  const [eps, setEps] = useState(null);
+  const [epsList, setEpsList] = useState([]);
+  const [loadingEps, setLoadingEps] = useState(true);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [secureText, setSecureText] = useState(true);
   const [loading, setLoading] = useState(false);
 
+
+  // listar ciudades(API)
+  const [ciudadesList, setCiudadesList] = useState([]);
+  const [loadingCiudades, setLoadingCiudades] = useState(true);
+
+  // 🔹 Solo Boyacá
+  const departamentosPermitidos = [7];
+
+  useEffect(() => {
+    const cargarCiudades = async () => {
+      try {
+        setLoadingCiudades(true);
+        const res = await fetch("https://api-colombia.com/api/v1/city");
+        if (!res.ok) throw new Error("Error al obtener las ciudades");
+
+        const data = await res.json();
+
+        // 🔹 Filtrar las ciudades que pertenecen a Boyacá
+        const filtradas = data.filter(ciudad =>
+          departamentosPermitidos.includes(ciudad.departmentId)
+        );
+
+        setCiudadesList(filtradas);
+      } catch (error) {
+        console.error("Error cargando ciudades:", error);
+        Alert.alert("Error", "No se pudieron cargar las ciudades de Boyacá.");
+      } finally {
+        setLoadingCiudades(false);
+      }
+    };
+
+    cargarCiudades();
+  }, []);
+
+  useEffect(() => {
+    const cargarDatos = async () => {
+      setLoadingEps(true);
+      const response = await obtenerEpsPublico();
+      if (response.success) {
+        setEpsList(response.data);
+      } else {
+        Alert.alert("Error", "No se pudieron cargar las EPS disponibles.");
+      }
+      setLoadingEps(false);
+    };
+
+    cargarDatos();
+  }, []);
+
   const onDateChange = (event, selectedDate) => {
-    const currentDate = selectedDate || fechaNacimiento;
+    if (selectedDate) {
+      const adjustedDate = new Date(
+        selectedDate.getTime() + selectedDate.getTimezoneOffset() * 60000
+      );
+      setFechaNacimiento(adjustedDate);
+    }
     setShowDatePicker(Platform.OS === "ios");
-    setFechaNacimiento(currentDate);
   };
+
 
   const handleRegister = async () => {
     if (validateForm()) {
@@ -52,10 +108,9 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
           documento,
           correo,
           clave,
-          confirmarClave,
           celular,
           ciudad,
-          eps,
+          id_eps: eps,
           Rh,
           genero,
           fecha_nacimiento: fechaNacimiento.toISOString().split("T")[0],
@@ -65,24 +120,32 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
 
         if (result.success) {
           Alert.alert(
-            "Registro Exitoso", 
-            result.message,
+            "Registro Exitoso",
+            result.message || "El paciente se registró correctamente.",
             [{ text: "Aceptar", onPress: () => navigation.goBack() }]
           );
         } else {
-          Alert.alert("Error de registro", result.message);
+          Alert.alert("Error de registro", result.message || "No se pudo registrar el paciente.");
         }
+
       } catch (error) {
-        console.error("Error inesperado en registro", error);
-        Alert.alert(
-          "Error",
-          "Ocurrió un error inesperado durante el registro."
-        );
+        console.error("Error inesperado en registro:", error.response?.data || error.message);
+
+        // 💡 Manejo detallado del error 422
+        if (error.response?.status === 422) {
+          const errors = error.response.data.errors;
+          const firstError = Object.values(errors)[0][0];
+          Alert.alert("Error de validación", firstError);
+        } else {
+          Alert.alert("Error", "Ocurrió un error inesperado durante el registro.");
+        }
+
       } finally {
         setLoading(false);
       }
     }
   };
+
 
   const validateForm = () => {
     if (
@@ -95,7 +158,7 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
       !confirmarClave ||
       !eps ||
       !Rh ||
-      !genero||
+      !genero ||
       !ciudad
     ) {
       Alert.alert("Error de registro", "Todos los campos son obligatorios.");
@@ -184,6 +247,14 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
       fontWeight: "bold",
       fontSize: 18,
     },
+        pickerContainer: {
+      backgroundColor: theme.background,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.border,
+      marginBottom: 12,
+      justifyContent: 'center',
+    },
   });
 
   return (
@@ -225,13 +296,6 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
             keyboardType="phone-pad"
             onChangeText={setCelular}
           />
-          <TextInput
-              style={styles.input}
-              placeholder="Ciudad"
-              placeholderTextColor={theme.subtitle}
-              value={ciudad}
-              onChangeText={setCiudad}
-          />
 
           {/* Fecha de nacimiento */}
           <TouchableOpacity
@@ -239,7 +303,7 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
             onPress={() => setShowDatePicker(true)}
           >
             <Text style={styles.dateText}>
-              {fechaNacimiento.toISOString().split("T")[0]}
+              {fechaNacimiento.toLocaleDateString("es-CO")}
             </Text>
             <Ionicons name="calendar-outline" size={24} color={theme.subtitle} />
           </TouchableOpacity>
@@ -299,19 +363,41 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
             </TouchableOpacity>
           </View>
 
+          {/**Picker de ciudades */}
+          {loadingCiudades
+            ? <ActivityIndicator color={theme.primary} style={{ marginVertical: 20 }} />
+            : (
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={ciudad}
+                  style={{ color: theme.text }}
+                  onValueChange={(itemValue) => setCiudad(itemValue)}
+                >
+                  <Picker.Item label="Seleccione su ciudad" value="" />
+                  {ciudadesList.map((c, idx) => (
+                    <Picker.Item key={idx} label={c.name || c.city || c.nombre} value={c.name || c.city || c.nombre} />
+                  ))}
+                </Picker>
+              </View>
+            )
+          }
           {/* Select EPS */}
-          <Picker
-            selectedValue={eps}
-            style={styles.picker}
-            onValueChange={(itemValue) => setEps(itemValue)}
-          >
-            <Picker.Item label="Seleccione su EPS" value="" />
-            <Picker.Item label="Sura" value="Sura" />
-            <Picker.Item label="Sanitas" value="Sanitas" />
-            <Picker.Item label="Nueva EPS" value="Nueva EPS" />
-            <Picker.Item label="Compensar" value="Compensar" />
-            <Picker.Item label="Otra" value="Otra" />
-          </Picker>
+          {loadingEps ? (
+            <ActivityIndicator color={theme.primary} style={{ marginVertical: 20 }} />
+          ) : (
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={eps}
+                style={{ color: theme.text }}
+                onValueChange={(itemValue) => setEps(itemValue)}
+              >
+                <Picker.Item label="Seleccione su EPS" value="" />
+                {epsList.map((item) => (
+                  <Picker.Item key={item.id} label={item.nombre} value={item.id} />
+                ))}
+              </Picker>
+            </View>
+          )}
 
           {/* Select Rh */}
           <Picker
@@ -339,7 +425,6 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
             <Picker.Item label="Seleccione su género" value="" />
             <Picker.Item label="Masculino" value="Masculino" />
             <Picker.Item label="Femenino" value="Femenino" />
-            <Picker.Item label="Otro" value="Otro" />
           </Picker>
 
           {/* Botones */}
