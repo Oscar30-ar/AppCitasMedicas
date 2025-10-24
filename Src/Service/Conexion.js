@@ -1,7 +1,7 @@
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_BASE_URL = `http://192.168.101.73:8000/api`;
+const API_BASE_URL = `http://10.2.234.177:8000/api`;
 // const API_BASE_URL = `https://nonbiologically-econometric-charlee.ngrok-free.dev/api`;
 
 const apiConexion = axios.create({

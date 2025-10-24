@@ -224,7 +224,7 @@ export const obtenerCitasHoy = async () => {
 export const updateRecepcionistaPerfil = async (userData) => {
   try {
     const response = await apiConexion.put('/me/recepcionista', userData);
-    return { success: true, message: "Perfil actualizado correctamente. Los cambios se reflejarán la próxima vez que inicie sesión.", user: response.data };
+    return { success: true, message: "Perfil actualizado correctamente.", user: response.data };
   } catch (error) {
     console.error("Error en updateMedicoPerfil:", error.response?.data || error.message);
     const errorMessage = error.response?.data?.message || "Error al actualizar el perfil del médico";

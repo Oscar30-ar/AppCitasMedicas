@@ -1,27 +1,37 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
-import {View,Text,StyleSheet,FlatList,ActivityIndicator,TextInput,TouchableOpacity,Alert,} from "react-native";
+import {
+    View,
+    Text,
+    StyleSheet,
+    FlatList,
+    ActivityIndicator,
+    TextInput,
+    TouchableOpacity,
+    Alert,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import { obtenerMisPacientes } from "../../Src/Service/MedicoService";
 import { useNavigation } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// --- Componente para cada paciente en la lista ---
 const PatientCard = ({ paciente, theme, onPress }) => (
     <TouchableOpacity
         style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
         onPress={onPress}
     >
-        <Ionicons name="person-circle-outline" size={40} color={theme.primary} />
+        <Ionicons name="person-circle-outline" size={45} color={theme.primary} />
         <View style={styles.cardInfo}>
             <Text style={[styles.patientName, { color: theme.text }]}>
-                {`${paciente.nombre} ${paciente.apellido}`}
+                {paciente.nombre} {paciente.apellido}
             </Text>
             <Text style={[styles.patientDetail, { color: theme.subtitle }]}>
-                ID: {paciente.documento}
+                Documento: {paciente.documento}
+            </Text>
+            <Text style={[styles.patientDetail, { color: theme.subtitle }]}>
+                Teléfono: {paciente.celular || "No registrado"}
             </Text>
         </View>
-        <Ionicons name="chevron-forward" size={24} color={theme.subtitle} />
+        <Ionicons name="chevron-forward" size={22} color={theme.subtitle} />
     </TouchableOpacity>
 );
 
@@ -32,32 +42,44 @@ export default function MisPacientesScreen() {
     const [pacientes, setPacientes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [refreshing, setRefreshing] = useState(false);
+
+    const cargarPacientes = async () => {
+        try {
+            const res = await obtenerMisPacientes();
+            if (res.success) {
+                // 🧹 Filtramos: pacientes con id válido y únicos
+                const unicos = Array.from(
+                    new Map(
+                        res.data
+                            .filter((p) => p.id !== null && p.id !== undefined)
+                            .map((p) => [p.id, p])
+                    ).values()
+                );
+                setPacientes(unicos);
+            } else {
+                Alert.alert("Error", res.message || "No se pudieron cargar los pacientes.");
+            }
+        } catch (error) {
+            console.error("Error al cargar pacientes:", error);
+            Alert.alert("Error", "Ocurrió un error inesperado.");
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
 
     useEffect(() => {
-        const cargarPacientes = async () => {
-            try {
-                const response = await obtenerMisPacientes();
-                if (response.success) {
-                    setPacientes(response.data);
-                } else {
-                    Alert.alert("Error", response.message || "No se pudieron cargar los pacientes.");
-                }
-            } catch (error) {
-                console.error("Error al cargar la lista de pacientes:", error);
-                Alert.alert("Error", "Ocurrió un error inesperado al obtener los pacientes.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         cargarPacientes();
     }, []);
 
-    // Filtra los pacientes según el término de búsqueda
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await cargarPacientes();
+    };
+
     const filteredPacientes = useMemo(() => {
-        if (!searchTerm) {
-            return pacientes;
-        }
+        if (!searchTerm) return pacientes;
         return pacientes.filter(
             (p) =>
                 p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,8 +88,8 @@ export default function MisPacientesScreen() {
         );
     }, [searchTerm, pacientes]);
 
-    const handlePatientPress = (paciente) => {
-        navigation.navigate('HistorialPaciente', { paciente: paciente });
+    const handlePress = (paciente) => {
+        navigation.navigate("HistorialPaciente", { paciente });
     };
 
     if (loading) {
@@ -81,48 +103,38 @@ export default function MisPacientesScreen() {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
-            {/* --- Barra de Búsqueda --- */}
-            <View style={[styles.searchContainer, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+            <View
+                style={[
+                    styles.searchContainer,
+                    { backgroundColor: theme.cardBackground, borderColor: theme.border },
+                ]}
+            >
                 <Ionicons name="search" size={20} color={theme.subtitle} />
                 <TextInput
                     style={[styles.searchInput, { color: theme.text }]}
-                    placeholder="Buscar por nombre, apellido o documento..."
+                    placeholder="Buscar paciente..."
                     placeholderTextColor={theme.subtitle}
                     value={searchTerm}
                     onChangeText={setSearchTerm}
                 />
             </View>
 
-            {/* --- Lista de Pacientes --- */}
             <FlatList
                 data={filteredPacientes}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item, index) => `${item.id}-${index}`} // 🔑 asegura unicidad total
                 renderItem={({ item }) => (
-                    <PatientCard paciente={item} theme={theme} onPress={() => handlePatientPress(item)} />
+                    <PatientCard paciente={item} theme={theme} onPress={() => handlePress(item)} />
                 )}
-                ListEmptyComponent={
-                    <View style={styles.center}>
-                        <Text style={{ color: theme.subtitle, textAlign: "center", marginTop: 50 }}>
-                            {searchTerm ? "No se encontraron pacientes." : "Aún no tienes pacientes asignados."}
-                        </Text>
-                    </View>
-                }
-                contentContainerStyle={{ paddingBottom: 20 }}
+                onRefresh={onRefresh}
+                refreshing={refreshing}
             />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 15,
-    },
-    center: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
+    container: { flex: 1, padding: 15 },
+    center: { justifyContent: "center", alignItems: "center" },
     searchContainer: {
         flexDirection: "row",
         alignItems: "center",
@@ -132,11 +144,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         height: 50,
     },
-    searchInput: {
-        flex: 1,
-        marginLeft: 10,
-        fontSize: 16,
-    },
+    searchInput: { flex: 1, marginLeft: 10, fontSize: 16 },
     card: {
         flexDirection: "row",
         alignItems: "center",
@@ -144,22 +152,13 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         marginBottom: 10,
         borderWidth: 1,
-        elevation: 2,
+        elevation: 3,
         shadowColor: "#000",
-        shadowOpacity: 0.05,
+        shadowOpacity: 0.08,
         shadowRadius: 4,
         shadowOffset: { width: 0, height: 2 },
     },
-    cardInfo: {
-        flex: 1,
-        marginLeft: 15,
-    },
-    patientName: {
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    patientDetail: {
-        fontSize: 14,
-        marginTop: 2,
-    },
+    cardInfo: { flex: 1, marginLeft: 15 },
+    patientName: { fontSize: 16, fontWeight: "bold" },
+    patientDetail: { fontSize: 14, marginTop: 2 },
 });

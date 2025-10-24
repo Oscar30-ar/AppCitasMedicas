@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert, ActivityIndicator, } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Modal, Alert, ActivityIndicator, RefreshControl, } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
@@ -7,7 +7,7 @@ import { useNavigation } from "@react-navigation/native";
 // Contextos y servicios
 import { ThemeContext } from "../../components/ThemeContext";
 import apiConexion from "../../Src/Service/Conexion";
-import { obtenerEstadisticas, obtenerMisCitas } from "../../Src/Service/MedicoService";
+import { obtenerEstadisticas, obtenerCitasHoy } from "../../Src/Service/MedicoService";
 import { logout } from "../../Src/Service/AuthService";
 const StatCard = ({ title, value, iconName, iconColor, theme }) => {
     const stylesCard = StyleSheet.create({
@@ -66,48 +66,52 @@ export default function DashboardMedico({ setUserToken }) {
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [citasHoy, setCitasHoy] = useState([]);
     const [stats, setStats] = useState({ citasHoy: 0, pacientesTotales: 0, pendientes: 0 });
+    const [refreshing, setRefreshing] = useState(false);
 
+    const cargarDatos = async () => {
+        try {
+            const role = await AsyncStorage.getItem("rolUser");
+
+            if (!role) {
+                Alert.alert("Sesión no encontrada", "Redirigiendo al login...");
+                setUserToken(null);
+                return;
+            }
+
+            let url = "";
+            if (role === "doctor") url = "/me/doctor";
+            const response = await apiConexion.get(url);
+            setUsuario(response.data.user || response.data);
+
+            // --- CITAS HOY ---
+            const responseCitas = await obtenerCitasHoy();
+            if (responseCitas.success) setCitasHoy(responseCitas.data);
+
+            // --- ESTADÍSTICAS ---
+            const statsData = await obtenerEstadisticas();
+            setStats(statsData);
+        } catch (error) {
+            console.error("Error cargando datos:", error);
+            if (error.response?.status !== 401) {
+                const errorMessage = error.message || "No se pudieron cargar los datos. Por favor, inicia sesión de nuevo.";
+                Alert.alert(
+                    "Error",
+                    errorMessage,
+                    [{ text: "Aceptar", onPress: () => setUserToken(null) }]
+                );
+            }
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
 
     useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                const role = await AsyncStorage.getItem("rolUser");
+        cargarDatos();
+    }, []);
 
-                if (!role) {
-                    Alert.alert("Sesión no encontrada", "Redirigiendo al login...");
-                    setUserToken(null);
-                    return;
-                }
-
-                let url = "";
-                if (role === "doctor") url = "/me/doctor";
-                const response = await apiConexion.get(url);
-                setUsuario(response.data.user || response.data);
-
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                // --- CITAS HOY ---
-                const responseCitas = await obtenerMisCitas();
-                if (responseCitas.success) setCitasHoy(responseCitas.data);
-
-                // --- ESTADÍSTICAS ---
-                const stats = await obtenerEstadisticas();
-                setStats(stats);
-            } catch (error) {
-                console.error("Error cargando datos:", error);
-                if (error.response?.status !== 401) {
-                    const errorMessage = error.message || "No se pudieron cargar los datos. Por favor, inicia sesión de nuevo.";
-                    Alert.alert(
-                        "Error",
-                        errorMessage,
-                        [{ text: "Aceptar", onPress: () => setUserToken(null) }]
-                    );
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
+    const onRefresh = React.useCallback(() => {
+        setRefreshing(true);
         cargarDatos();
     }, []);
 
@@ -168,7 +172,12 @@ export default function DashboardMedico({ setUserToken }) {
     });
 
     return (
-        <ScrollView contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}>
+        <ScrollView
+            contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+            }
+        >
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.titleContainer}>

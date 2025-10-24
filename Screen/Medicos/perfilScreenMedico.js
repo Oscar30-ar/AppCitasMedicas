@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Alert, ActivityIndicator, RefreshControl } from "react-native";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
 import BottonComponent from "../../components/BottonComponent";
 import { ThemeContext } from "../../components/ThemeContext";
@@ -13,41 +13,48 @@ export default function PerfilMedicoScreen() {
   const { theme } = useContext(ThemeContext);
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const cargarPerfil = async () => {
-      try {
-        const token = await AsyncStorage.getItem("userToken");
-        const role = await AsyncStorage.getItem("rolUser");
+  const cargarPerfil = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      const role = await AsyncStorage.getItem("rolUser");
 
-        if (!token || !role) {
-          Alert.alert("Error de autenticación", "No se encontró sesión activa, por favor, inicia sesión de nuevo.");
-          await AsyncStorage.multiRemove(["userToken", "rolUser"]);
-          navigation.navigate("Login");
-          return;
-        }
-
-        let url = "";
-        if (role === "paciente") url = "/me/paciente";
-        if (role === "doctor") url = "/me/doctor";
-        if (role === "recepcionista") url = "/me/recepcionista";
-
-        const response = await apiConexion.get(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        console.log("Perfil cargado:", response.data);
-        setUsuario(response.data.user || response.data);
-      } catch (error) {
-        console.error("Error al cargar el perfil", error);
-        Alert.alert("Error", "Ocurrió un error al cargar el perfil.");
+      if (!token || !role) {
+        Alert.alert("Error de autenticación", "No se encontró sesión activa, por favor, inicia sesión de nuevo.");
         await AsyncStorage.multiRemove(["userToken", "rolUser"]);
         navigation.navigate("Login");
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
+      let url = "";
+      if (role === "paciente") url = "/me/paciente";
+      if (role === "doctor") url = "/me/doctor";
+      if (role === "recepcionista") url = "/me/recepcionista";
+
+      const response = await apiConexion.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Perfil cargado:", response.data);
+      setUsuario(response.data.user || response.data);
+    } catch (error) {
+      console.error("Error al cargar el perfil", error);
+      Alert.alert("Error", "Ocurrió un error al cargar el perfil.");
+      await AsyncStorage.multiRemove(["userToken", "rolUser"]);
+      navigation.navigate("Login");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarPerfil();
+  }, []);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
     cargarPerfil();
   }, []);
 
@@ -69,7 +76,12 @@ export default function PerfilMedicoScreen() {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+      }
+    >
 
       {/* HEADER con avatar */}
       <View style={styles.header}>

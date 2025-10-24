@@ -13,105 +13,76 @@ export const obtenerEstadisticas = async () => {
     }
 };
 
-export const obtenerMisCitas = async () => {
-    try {
-        const token = await AsyncStorage.getItem("userToken");
+// Citas de hoy
+export const obtenerCitasHoy = async () => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const res = await apiConexion.get("/doctor/citas/hoy", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-        const res = await apiConexion.get("/doctor/citas", {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error al obtener citas:", error.response?.data || error);
+    return { success: false, message: "Error al obtener citas del día." };
+  }
+};
+/**
+ * 🔹 Marcar una cita como realizada
+ */
+export const marcarCitaRealizada = async (idCita) => {
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const res = await apiConexion.put(`/doctor/citas/${idCita}/realizada`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-        return { success: true, data: res.data.data };
-    } catch (error) {
-        console.error("Error obteniendo citas:", error.response?.data || error.message);
-        return { success: false, message: error.response?.data?.message || "Error de conexión" };
-    }
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error al marcar cita:", error.response?.data || error);
+    return { success: false, message: "Error al marcar cita como realizada." };
+  }
 };
 
 //Mis pacientes
 export const obtenerMisPacientes = async () => {
-    try {
-        const response = await apiConexion.get("/doctor/pacientes");
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const response = await apiConexion.get("/doctor/mis-pacientes", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-        if (response.status === 200) {
-            return {
-                success: true,
-                data: response.data.data,
-                message: "Pacientes cargados."
-            };
-        }
-
-        return {
-            success: false,
-            data: [],
-            message: response.data.message || "Respuesta inesperada del servidor."
-        };
-
-    } catch (error) {
-        console.error("Error en obtenerMisPacientes:", error);
-
-        // Manejo de errores de red o del servidor (4xx, 5xx)
-        if (error.response) {
-            // Error de respuesta del servidor (ej: 401 Unauthorized, 404 Not Found)
-            return {
-                success: false,
-                data: [],
-                message: error.response.data.message || "Error al obtener la lista de pacientes."
-            };
-        }
-
-        // Error de red (sin conexión)
-        return {
-            success: false,
-            data: [],
-            message: "No se pudo conectar con el servidor. Verifica tu conexión a internet."
-        };
-    }
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error obteniendo pacientes:", error.response?.data || error);
+    return {
+      success: false,
+      message: "Error al obtener la lista de pacientes.",
+    };
+  }
 };
-
 // Historial de un paciente específico
 export const obtenerHistorialPaciente = async (pacienteId) => {
-    try {
-        const response = await apiConexion.get(`/doctor/pacientes/${pacienteId}/historial`);
-
-        if (response.status === 200) {
-            return {
-                success: true,
-                data: response.data.data,
-                message: "Historial cargado."
-            };
-        }
-
-        return {
-            success: false,
-            data: [],
-            message: response.data.message || "Respuesta inesperada del servidor."
-        };
-
-    } catch (error) {
-        console.error("Error en obtenerHistorialPaciente:", error);
-
-        if (error.response) {
-            return {
-                success: false,
-                data: [],
-                message: error.response.data.message || "Error al obtener historial."
-            };
-        }
-
-        return {
-            success: false,
-            data: [],
-            message: "No se pudo conectar con el servidor. Verifica tu conexión a internet."
-        };
-    }
+  try {
+    const token = await AsyncStorage.getItem("userToken");
+    const res = await apiConexion.get(`/doctor/pacientes/${pacienteId}/historial`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error al obtener historial:", error.response?.data || error);
+    return {
+      success: false,
+      message: "Error al obtener el historial del paciente.",
+    };
+  }
 };
 
 //Editar Perfil Medico
 export const updateMedicoPerfil = async (userData) => {
     try {
         const response = await apiConexion.put('/me/doctor', userData);
-        return { success: true, message: "Perfil actualizado correctamente. Los cambios se reflejarán la próxima vez que inicie sesión.", user: response.data };
+        return { success: true, message: "Perfil actualizado correctamente.", user: response.data };
     } catch (error) {
         console.error("Error en updateMedicoPerfil:", error.response?.data || error.message);
         const errorMessage = error.response?.data?.message || "Error al actualizar el perfil del médico";
