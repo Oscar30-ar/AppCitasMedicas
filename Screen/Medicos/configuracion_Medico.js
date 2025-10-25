@@ -102,26 +102,6 @@ export default function configuracionMedico({ setUserToken }) {
         setShowLogoutModal(false);
     };
 
-    //permisos para notificaciones
-
-    const checkPermisos = async () => {
-        const { status } = await Notifications.getPermissionsAsync();
-        const preferencia = await AsyncStorage.getItem("notificaciones_activas");
-        setPermisoNotificaciones(status === 'granted' && preferencia === 'true');
-        setLoadingNotificacion(false);
-    };
-
-    useEffect(() => {
-        checkPermisos();
-    }, []);
-
-    useFocusEffect(
-        React.useCallback(() => {
-            checkPermisos();
-        }, [])
-    );
-
-
 
     return (
         <ScrollView
@@ -264,6 +244,69 @@ export default function configuracionMedico({ setUserToken }) {
 
 const styles = StyleSheet.create({
 
+    // --- ESTILOS PARA NOTIFICACIONES ---
+    sectionHeader: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        paddingHorizontal: 5,
+    },
+    notificationCard: {
+        justifyContent: 'space-between',
+        paddingVertical: 15,
+    },
+    testButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 12,
+        borderRadius: 10,
+        marginTop: 10,
+        marginBottom: 10, 
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 1.41,
+        elevation: 2,
+    },
+    testButtonText: {
+        color: 'white',
+        fontSize: 15,
+        fontWeight: '600',
+    },
+
+    container: {
+        flex: 1,
+        paddingHorizontal: 20,
+        paddingTop: 30,
+    },
+    settingCard: {
+        flexDirection: "row",
+        alignItems: "center",
+        borderRadius: 16,
+        padding: 18,
+        marginBottom: 15,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
+    },
+    iconContainer: {
+        marginRight: 18,
+        padding: 10,
+        borderRadius: 12,
+    },
+    textContainer: {
+        flex: 1,
+    },
+    settingTitle: {
+        fontSize: 17,
+        fontWeight: "600",
+    },
+    settingSubtitle: {
+        fontSize: 13,
+    },
 
     // --- ESTILOS DE ELIMINACIÓN DE CUENTA ---
     deleteSection: {

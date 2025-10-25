@@ -91,7 +91,7 @@ const fechaInicial = new Date(year, month - 1, day, 12, 0, 0);
 
             if (result.success) {
                 Alert.alert("✅ Éxito", "Cita reprogramada correctamente.", [
-                    { text: "Aceptar", onPress: () => navigation.navigate("DashboardPaciente") },
+                    { text: "Aceptar", onPress: () => navigation.navigate("DashboardPacientes") },
                 ]);
             } else {
                 Alert.alert("Error", result.message || "No se pudo reprogramar la cita.");

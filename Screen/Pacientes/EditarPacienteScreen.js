@@ -176,7 +176,7 @@ export default function EditarPacienteScreen({ navigation }) {
         setCelular(userData.celular || "");
         setCorreo(userData.correo || "");
         setCiudad(userData.ciudad || "");
-        setEpsId(userData.id_eps || null); // Asumiendo que el backend devuelve id_eps
+        setEpsId(userData.id_eps ?? userData.eps?.id ?? null);
         setRh(userData.Rh || "");
         setGenero(userData.genero || "");
 
