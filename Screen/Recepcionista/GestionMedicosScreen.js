@@ -2,8 +2,8 @@ import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '../../components/ThemeContext';
-import { obtenerDoctores, eliminarDoctor } from '../../Src/Service/RecepcionService';
-import { useNavigation } from '@react-navigation/native';
+import { obtenerDoctores, eliminarDoctor } from '../../Src/Service/RecepcionService'; 
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // 💡 Componente DoctorCard CORREGIDO 
 const DoctorCard = ({ doctor, theme, onEdit, onDelete }) => (
@@ -60,9 +60,11 @@ export default function GestionMedicosScreen() {
         }
     };
 
-    useEffect(() => {
-        cargarDoctores();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            cargarDoctores();
+        }, [])
+    );
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);

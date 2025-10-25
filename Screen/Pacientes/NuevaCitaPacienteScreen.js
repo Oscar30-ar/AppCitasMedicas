@@ -81,63 +81,68 @@ export default function NuevaCitaPacienteScreen({ navigation }) {
     verificar();
   }, [doctorId, fecha, hora]);
 
-  // Manejar cambio de fecha (sin desfase)
-  const onChangeFecha = (event, selectedDate) => {
+  // ✅ Fecha a partir de mañana
+  const mañana = new Date();
+  mañana.setDate(mañana.getDate() + 1);
+  mañana.setHours(0, 0, 0, 0); const onChangeFecha = (event, selectedDate) => {
     if (Platform.OS === "android") setShowDatePicker(false);
     if (event?.type === "dismissed") return;
 
-    if (selectedDate) {
-      const fixedDate = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate()
-      );
-      setFecha(fixedDate);
+    const nuevaFecha = new Date(selectedDate);
+    nuevaFecha.setHours(0, 0, 0, 0);
+
+    // 🚫 Si la fecha elegida es menor a mañana, corregirla automáticamente
+    if (nuevaFecha < mañana) {
+      Alert.alert("Fecha inválida", "Debe seleccionar una fecha a partir de mañana.");
+      setFecha(mañana);
+    } else {
+      setFecha(nuevaFecha);
     }
   };
 
+
   // Crear cita
   const handleCrearCita = async () => {
-  if (!doctorId) {
-    Alert.alert("Error", "Selecciona un doctor");
-    return;
-  }
-
-  // ⚠️ Si no está disponible, salimos inmediatamente
-  if (!disponible?.disponible) {
-    Alert.alert("Error", disponible?.mensaje || "No disponible");
-    return;
-  }
-
-  try {
-    const cita = {
-      id_paciente: pacienteId,
-      id_doctor: doctorId,
-      fecha: new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000)
-        .toISOString()
-        .split("T")[0],
-      hora,
-      estado: "pendiente",
-      descripcion: descripcion || "Cita solicitada por el paciente.",
-    };
-
-    const res = await crearCita(cita);
-
-    // 🚫 Si el backend responde con error, mostramos la alerta y detenemos el flujo
-    if (!res.success) {
-      Alert.alert("Error", res.message || "No se pudo crear la cita.");
-      return; // ← Detiene completamente el proceso aquí
+    if (!doctorId) {
+      Alert.alert("Error", "Selecciona un doctor");
+      return;
     }
 
-    // ✅ Si todo sale bien
-    Alert.alert("✅ Éxito", "Cita solicitada correctamente.", [
-      { text: "Aceptar", onPress: () => navigation.goBack() },
-    ]);
-  } catch (error) {
-    console.error("Error creando cita:", error);
-    Alert.alert("Error", "Ocurrió un error inesperado al crear la cita.");
-  }
-};
+    // ⚠️ Si no está disponible, salimos inmediatamente
+    if (!disponible?.disponible) {
+      Alert.alert("Error", disponible?.mensaje || "No disponible");
+      return;
+    }
+
+    try {
+      const cita = {
+        id_paciente: pacienteId,
+        id_doctor: doctorId,
+        fecha: new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000)
+          .toISOString()
+          .split("T")[0],
+        hora,
+        estado: "pendiente",
+        descripcion: descripcion || "Cita solicitada por el paciente.",
+      };
+
+      const res = await crearCita(cita);
+
+      // 🚫 Si el backend responde con error, mostramos la alerta y detenemos el flujo
+      if (!res.success) {
+        Alert.alert("Error", res.message || "No se pudo crear la cita.");
+        return; // ← Detiene completamente el proceso aquí
+      }
+
+      // ✅ Si todo sale bien
+      Alert.alert("✅ Éxito", "Cita solicitada correctamente.", [
+        { text: "Aceptar", onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      console.error("Error creando cita:", error);
+      Alert.alert("Error", "Ocurrió un error inesperado al crear la cita.");
+    }
+  };
 
 
   if (loading)
@@ -190,7 +195,7 @@ export default function NuevaCitaPacienteScreen({ navigation }) {
           value={fecha}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
-          minimumDate={new Date()}
+          minimumDate={mañana}
           onChange={onChangeFecha}
         />
       )}

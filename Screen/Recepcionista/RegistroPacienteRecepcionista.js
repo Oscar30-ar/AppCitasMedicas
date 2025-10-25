@@ -164,6 +164,15 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
       Alert.alert("Error de registro", "Todos los campos son obligatorios.");
       return false;
     }
+    if (clave.length < 6 || confirmarClave.length < 6) {
+      Alert.alert("Error", "Las contraseñas deben ser de minimo 6 caracteres.");
+      return false;
+    }
+
+    if (celular.length < 10 || documento.length < 10) {
+      Alert.alert("Error", "El celular y el documento deben ser de minimo 10 caracteres.");
+      return false;
+    }
     if (clave !== confirmarClave) {
       Alert.alert("Error de registro", "Las contraseñas no coinciden.");
       return false;
@@ -247,7 +256,7 @@ export default function RegistroPacienteRecepcionista({ navigation }) {
       fontWeight: "bold",
       fontSize: 18,
     },
-        pickerContainer: {
+    pickerContainer: {
       backgroundColor: theme.background,
       borderRadius: 10,
       borderWidth: 1,

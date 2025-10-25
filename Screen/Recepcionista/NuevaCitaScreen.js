@@ -107,11 +107,27 @@ export default function NuevaCitaRecepcionScreen({ navigation }) {
     verificar();
   }, [doctorId, fecha, hora]);
 
+  // ✅ Fecha a partir de mañana
+  const mañana = new Date();
+  mañana.setDate(mañana.getDate() + 1);
+  mañana.setHours(0, 0, 0, 0);
+
   const onChangeFecha = (event, selectedDate) => {
     if (Platform.OS === "android") setShowDatePicker(false);
     if (event?.type === "dismissed") return;
-    if (selectedDate) setFecha(new Date(selectedDate));
+
+    const nuevaFecha = new Date(selectedDate);
+    nuevaFecha.setHours(0, 0, 0, 0);
+
+    // 🚫 Si la fecha elegida es menor a mañana, corregirla automáticamente
+    if (nuevaFecha < mañana) {
+      Alert.alert("Fecha inválida", "Debe seleccionar una fecha a partir de mañana.");
+      setFecha(mañana);
+    } else {
+      setFecha(nuevaFecha);
+    }
   };
+
 
   const handleCrearCita = async () => {
     if (!pacienteId || !doctorId) {
@@ -221,7 +237,7 @@ export default function NuevaCitaRecepcionScreen({ navigation }) {
           value={fecha}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
-          minimumDate={new Date()}
+          minimumDate={mañana}
           onChange={onChangeFecha}
         />
       )}

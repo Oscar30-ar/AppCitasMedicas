@@ -108,6 +108,15 @@ export default function AgregarMedicoScreen({ navigation }) {
       Alert.alert("Error", "Todos los campos son obligatorios.");
       return false;
     }
+     if(clave.length < 6 || confirmarClave.length < 6) {
+      Alert.alert("Error", "Las contraseñas deben ser de minimo 6 caracteres.");
+      return false;
+    }
+
+    if(celular.length < 10 || documento.length < 10) {
+      Alert.alert("Error", "El celular y el documento deben ser de minimo 10 caracteres.");
+      return false;
+    }
     if (clave !== confirmarClave) {
       Alert.alert("Error", "Las contraseñas no coinciden.");
       return false;
