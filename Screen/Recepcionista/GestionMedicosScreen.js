@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '../../components/ThemeContext';
 import { obtenerDoctores, eliminarDoctor } from '../../Src/Service/RecepcionService';
@@ -39,26 +39,33 @@ export default function GestionMedicosScreen() {
     const navigation = useNavigation();
     const [doctores, setDoctores] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const cargarDoctores = async () => {
+        try {
+            const response = await obtenerDoctores();
+            console.log("👩‍⚕️ Doctores cargados:", response.data);
+
+            if (response.success) {
+                setDoctores(response.data.data);
+            } else {
+                Alert.alert("Error", "No se pudieron cargar los médicos.");
+            }
+        } catch (error) {
+            console.error("Error cargando doctores:", error);
+            Alert.alert("Error", "No se pudieron obtener los médicos.");
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
+    };
 
     useEffect(() => {
-        const cargarDoctores = async () => {
-            try {
-                const response = await obtenerDoctores();
-                console.log("👩‍⚕️ Doctores cargados:", response.data); 
+        cargarDoctores();
+    }, []);
 
-                if (response.success) {
-                    setDoctores(response.data.data);
-                } else {
-                    Alert.alert("Error", "No se pudieron cargar los médicos.");
-                }
-            } catch (error) {
-                console.error("Error cargando doctores:", error);
-                Alert.alert("Error", "No se pudieron obtener los médicos.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
         cargarDoctores();
     }, []);
 
@@ -118,6 +125,9 @@ export default function GestionMedicosScreen() {
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
                     <DoctorCard
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+                        }
                         doctor={item}
                         theme={theme}
                         onEdit={() => handleEdit(item)}

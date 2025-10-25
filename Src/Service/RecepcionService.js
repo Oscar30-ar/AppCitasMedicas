@@ -241,7 +241,7 @@ export async function eliminarCuentaRecepcionista() {
       return { success: false, message: "No hay sesión activa." };
     }
 
-    const response = await apiConexion.delete('/eliminarCuenta');
+    const response = await apiConexion.delete('/eliminarCuenta/recepcionista');
 
     if (response.data && response.data.success) {
       await AsyncStorage.multiRemove(["userToken", "rolUser", "userData"]);
@@ -549,7 +549,6 @@ export const actualizarEstadoCita = async (id, estado) => {
     return { success: false, message: "Error al actualizar la cita." };
   }
 };
-
 
 // Crear cita
 export const crearCitaRecepcion = async (data) => {

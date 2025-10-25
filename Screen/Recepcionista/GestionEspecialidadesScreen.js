@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '../../components/ThemeContext';
 import { obtenerEspecialidades, eliminarEspecialidad } from '../../Src/Service/RecepcionService';
@@ -32,6 +32,7 @@ export default function GestionEspecialidadesScreen() {
     const navigation = useNavigation();
     const [especialidades, setEspecialidades] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
     const cargarEspecialidades = async () => {
         setLoading(true);
@@ -46,6 +47,7 @@ export default function GestionEspecialidadesScreen() {
             Alert.alert("Error", "Ocurrió un problema al obtener las especialidades.");
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -54,6 +56,11 @@ export default function GestionEspecialidadesScreen() {
             cargarEspecialidades();
         }, [])
     );
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        cargarEspecialidades();
+    }, []);
 
     const handleDelete = (especialidad) => {
         Alert.alert(
@@ -96,6 +103,9 @@ export default function GestionEspecialidadesScreen() {
             <FlatList
                 data={especialidades}
                 keyExtractor={(item) => item.id.toString()}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+                }
                 renderItem={({ item }) => (
                     <EspecialidadCard
                         especialidad={item}

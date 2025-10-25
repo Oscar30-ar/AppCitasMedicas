@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '../../components/ThemeContext';
 import { obtenerConsultorios, eliminarConsultorio } from '../../Src/Service/RecepcionService';
@@ -32,6 +32,7 @@ export default function GestionConsultoriosScreen() {
     const navigation = useNavigation();
     const [consultorios, setConsultorios] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
     const cargarConsultorios = async () => {
         setLoading(true);
@@ -46,6 +47,7 @@ export default function GestionConsultoriosScreen() {
             Alert.alert("Error", "Ocurrió un problema al obtener los consultorios.");
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
@@ -54,6 +56,11 @@ export default function GestionConsultoriosScreen() {
             cargarConsultorios();
         }, [])
     );
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        cargarConsultorios();
+    }, []);
 
     const handleDelete = (consultorio) => {
         Alert.alert(
@@ -96,6 +103,9 @@ export default function GestionConsultoriosScreen() {
             <FlatList
                 data={consultorios}
                 keyExtractor={(item) => item.id.toString()}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+                }
                 renderItem={({ item }) => (
                     <ConsultorioCard
                         consultorio={item}

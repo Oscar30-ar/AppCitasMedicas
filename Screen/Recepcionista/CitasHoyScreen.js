@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
@@ -17,25 +18,31 @@ export default function CitasHoyScreen() {
   const { theme } = useContext(ThemeContext);
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const cargarCitas = async () => {
+    try {
+      const response = await obtenerCitasHoy();
+      if (response && response.success) {
+        setCitas(response.data);
+      } else {
+        Alert.alert("Error", response?.message || "No se pudieron cargar las citas.");
+      }
+    } catch (error) {
+      console.error("Error en cargarCitas:", error);
+      Alert.alert("Error", "Error al cargar las citas. Revisa la consola.");
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const cargarCitas = async () => {
-      setLoading(true);
-      try {
-        const response = await obtenerCitasHoy();
-        if (response && response.success) {
-          setCitas(response.data);
-        } else {
-          Alert.alert("Error", response?.message || "No se pudieron cargar las citas.");
-        }
-      } catch (error) {
-        console.error("Error en cargarCitas:", error);
-        Alert.alert("Error", "Error al cargar las citas. Revisa la consola.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    cargarCitas();
+  }, []);
 
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
     cargarCitas();
   }, []);
 
@@ -66,7 +73,12 @@ export default function CitasHoyScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+      }
+    >
       <Text style={[styles.sectionTitle, { color: theme.text }]}>
         <Ionicons name="calendar" size={18} color={theme.text} /> Citas Programadas para Hoy
       </Text>

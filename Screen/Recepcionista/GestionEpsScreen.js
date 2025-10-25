@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '../../components/ThemeContext';
@@ -44,6 +45,7 @@ export default function GestionEpsScreen() {
   const navigation = useNavigation();
   const [epsList, setEpsList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const cargarEps = async () => {
     setLoading(true);
@@ -58,6 +60,7 @@ export default function GestionEpsScreen() {
       Alert.alert('Error', 'Ocurrió un problema al obtener las EPS.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -66,6 +69,11 @@ export default function GestionEpsScreen() {
       cargarEps();
     }, [])
   );
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    cargarEps();
+  }, []);
 
   const handleDelete = (eps) => {
     Alert.alert(
@@ -120,6 +128,9 @@ export default function GestionEpsScreen() {
       <FlatList
         data={epsList}
         keyExtractor={(item) => item.id.toString()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+        }
         renderItem={({ item }) => (
           <EpsCard
             eps={item}

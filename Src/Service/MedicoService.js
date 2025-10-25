@@ -93,7 +93,15 @@ export const updateMedicoPerfil = async (userData) => {
 //eliminar cuenta
 export async function eliminarCuentaMedico() {
     try {
-        const response = await apiConexion.delete('eliminarCuenta');
+        const token = await AsyncStorage.getItem("userToken");
+
+        if (!token) {
+            return { success: false, message: "No hay sesión activa." };
+        }
+
+        const response = await apiConexion.delete('/eliminarCuenta/medico', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
 
         if (response.data && response.data.success) {
             await AsyncStorage.multiRemove(["userToken", "rolUser", "userData"]);

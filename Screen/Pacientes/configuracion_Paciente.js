@@ -9,20 +9,29 @@ import {
     Alert,
     ActivityIndicator,
     Switch,
+    Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
 import { logout } from "../../Src/Service/AuthService";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { eliminarCuentaPaciente } from "../../Src/Service/PacienteService";
+import { eliminarCuentaPaciente, guardarTokenNotificacion } from "../../Src/Service/PacienteService";
 import * as Notifications from "expo-notifications";
-import { guardarTokenNotificacion } from "../../Src/Service/PacienteService";
 
+// Configuración de cómo se muestran las notificaciones cuando llega una
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
+});
 
 export default function ConfiguracionPaciente({ setUserToken }) {
     const { theme, toggleTheme } = useContext(ThemeContext);
     const navigation = useNavigation();
+
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -31,96 +40,21 @@ export default function ConfiguracionPaciente({ setUserToken }) {
 
     const isDark = theme.name === "dark";
 
-    const handleDeleteAccount = async () => {
-        setShowDeleteModal(false);
-        setIsDeleting(true);
-
-        try {
-            const result = await eliminarCuentaPaciente();
-
-            if (result.success) {
-                // El servicio debe encargarse de limpiar AsyncStorage
-                Alert.alert(
-                    "¡Éxito!",
-                    result.message,
-                    [{ text: "Aceptar", onPress: () => setUserToken(null) }]
-                );
-            } else {
-                Alert.alert("Error", result.message || "No se pudo eliminar la cuenta.");
-            }
-
-        } catch (error) {
-            console.error("Error al eliminar la cuenta:", error);
-            Alert.alert("Error", "Ocurrió un error inesperado al eliminar la cuenta.");
-        } finally {
-            setIsDeleting(false);
-        }
-    };
-
-
-    const settingsOptions = [
-        {
-
-            icon: <Ionicons name="document-text-outline" size={26} color={theme.primary} />,
-            title: "Términos de Uso",
-            subtitle: "Leer los términos y condiciones",
-            action: "terms",
-        },
-        {
-            icon: <Ionicons name="key-outline" size={26} color={theme.primary} />,
-            title: "Cambiar Contraseña",
-            subtitle: "Actualizar tu contraseña",
-            action: "changePassword",
-        },
-        {
-            icon: (
-                <Ionicons
-                    name={isDark ? "moon" : "moon-outline"}
-                    size={26}
-                    color={theme.primary}
-                />
-            ),
-            title: "Modo Oscuro",
-            subtitle: isDark ? "Usando tema oscuro" : "Usando tema claro",
-            action: "theme",
-        },
-        {
-            icon: <Ionicons name="log-out-outline" size={26} color={theme.primary} />,
-            title: "Cerrar Sesión",
-            subtitle: "Salir de tu cuenta",
-            action: "logout",
-        },
-    ];
-
-    const handleOptionPress = (action) => {
-        if (action === "terms") {
-            navigation.navigate("TerminosUso");
-        } else if (action === "changePassword") {
-            navigation.navigate("CambiarContrasena");
-        } else if (action === "theme") {
-            toggleTheme();
-        } else if (action === "logout") {
-            setShowLogoutModal(true);
-        }
-    };
-
-    //permisos para notificaciones
-
+    // Verificar permisos
     const checkPermisos = async () => {
         const { status } = await Notifications.getPermissionsAsync();
         const preferencia = await AsyncStorage.getItem("notificaciones_activas");
-        setPermisoNotificaciones(status === 'granted' && preferencia === 'true');
+        setPermisoNotificaciones(status === "granted" && preferencia === "true");
         setLoadingNotificacion(false);
     };
 
     useEffect(() => {
-        const subscription = Notifications.addNotificationReceivedListener(notification => {
+        // Escucha notificaciones recibidas
+        const subscription = Notifications.addNotificationReceivedListener((notification) => {
             Alert.alert("📢 Notificación", notification.request.content.body);
         });
-
         return () => subscription.remove();
     }, []);
-
 
     useEffect(() => {
         checkPermisos();
@@ -133,21 +67,78 @@ export default function ConfiguracionPaciente({ setUserToken }) {
     );
 
     const toggleSwitch = async (valor) => {
+        console.log("🟢 toggleSwitch activado:", valor);
+
         if (valor) {
-            const { status } = await Notifications.requestPermissionsAsync();
-            if (status === "granted") {
-                const token = (await Notifications.getExpoPushTokenAsync()).data;
+            try {
+                const { status: existingStatus } = await Notifications.getPermissionsAsync();
+                let finalStatus = existingStatus;
+
+                if (existingStatus !== "granted") {
+                    const { status } = await Notifications.requestPermissionsAsync();
+                    finalStatus = status;
+                }
+
+                console.log("📱 Estado del permiso:", finalStatus);
+
+                if (finalStatus !== "granted") {
+                    Alert.alert("🚫 Permiso denegado", "No podrás recibir notificaciones.");
+                    return;
+                }
+
+                // 🚨 Nuevo bloque de depuración
+                console.log("🛰️ Obteniendo token desde Expo...");
+                const response = await Notifications.getExpoPushTokenAsync({
+                    projectId: "931b0874-5171-4ff1-947c-2e7f5327bda2",
+                });
+                console.log("📦 Respuesta completa del token:", response);
+
+                const token = response.data;
+                console.log("✅ Token obtenido:", token);
+
+                if (!token) {
+                    Alert.alert("Error", "No se pudo obtener el token de notificaciones.");
+                    return;
+                }
+
                 await AsyncStorage.setItem("notificaciones_activas", "true");
                 await AsyncStorage.setItem("expo_token", token);
                 setPermisoNotificaciones(true);
-                await guardarTokenNotificacion(token);
-            } else {
-                await AsyncStorage.setItem("notificaciones_activas", "false");
+
+                console.log("📤 Enviando token al backend...");
+                const result = await guardarTokenNotificacion(token);
+                console.log("📤 Resultado guardarTokenNotificacion:", result);
+
+                Alert.alert("🔔Notificaciones activadas", "Ahora recibirás alertas.");
+            } catch (error) {
+                console.error("❌ Error en toggleSwitch:", error);
+                Alert.alert("Error", "Ocurrió un error al activar las notificaciones.");
             }
         } else {
             await AsyncStorage.setItem("notificaciones_activas", "false");
             setPermisoNotificaciones(false);
-            Alert.alert("Notificaciones Desactivadas", "No recibirás alertas directas.");
+            Alert.alert("🔕 Notificaciones desactivadas", "Ya no recibirás alertas.");
+        }
+    };
+
+
+    const handleDeleteAccount = async () => {
+        setShowDeleteModal(false);
+        setIsDeleting(true);
+        try {
+            const result = await eliminarCuentaPaciente();
+            if (result.success) {
+                Alert.alert("¡Éxito!", result.message, [
+                    { text: "Aceptar", onPress: () => setUserToken(null) },
+                ]);
+            } else {
+                Alert.alert("Error", result.message || "No se pudo eliminar la cuenta.");
+            }
+        } catch (error) {
+            console.error("Error al eliminar la cuenta:", error);
+            Alert.alert("Error", "Ocurrió un error inesperado al eliminar la cuenta.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -155,20 +146,13 @@ export default function ConfiguracionPaciente({ setUserToken }) {
         setShowLogoutModal(false);
         try {
             await logout();
-            Alert.alert(
-                "¡Éxito!",
-                "Has cerrado sesión correctamente.",
-                [{ text: "Aceptar", onPress: () => setUserToken(null) }],
-                { cancelable: false }
-            );
+            Alert.alert("¡Éxito!", "Has cerrado sesión correctamente.", [
+                { text: "Aceptar", onPress: () => setUserToken(null) },
+            ]);
         } catch (error) {
             console.error("Error al cerrar sesión:", error);
             Alert.alert("Error", "No se pudo cerrar la sesión. Inténtalo de nuevo.");
         }
-    };
-
-    const handleCancelLogout = () => {
-        setShowLogoutModal(false);
     };
 
     return (
@@ -176,75 +160,52 @@ export default function ConfiguracionPaciente({ setUserToken }) {
             style={[styles.container, { backgroundColor: theme.background }]}
             showsVerticalScrollIndicator={false}
         >
-            {/* Opciones */}
+            {/* --- Opciones principales --- */}
             <View>
-                {settingsOptions.map((option, index) => (
+                {[
+                    { icon: "document-text-outline", title: "Términos de Uso", subtitle: "Leer los términos y condiciones", action: "terms" },
+                    { icon: "key-outline", title: "Cambiar Contraseña", subtitle: "Actualizar tu contraseña", action: "changePassword" },
+                    { icon: isDark ? "moon" : "moon-outline", title: "Modo Oscuro", subtitle: isDark ? "Usando tema oscuro" : "Usando tema claro", action: "theme" },
+                    { icon: "log-out-outline", title: "Cerrar Sesión", subtitle: "Salir de tu cuenta", action: "logout" },
+                ].map((option, i) => (
                     <TouchableOpacity
-                        key={index}
+                        key={i}
                         style={[styles.settingCard, { backgroundColor: theme.cardBackground }]}
-                        onPress={() => handleOptionPress(option.action)}
+                        onPress={() => {
+                            if (option.action === "theme") toggleTheme();
+                            else if (option.action === "logout") setShowLogoutModal(true);
+                            else if (option.action === "terms") navigation.navigate("TerminosUso");
+                            else if (option.action === "changePassword") navigation.navigate("CambiarContrasena");
+                        }}
                     >
-                        <View style={[styles.iconContainer, { backgroundColor: theme.name === 'dark' ? theme.cardBackground : 'rgba(59,130,246,0.1)' }]}>
-                            {option.icon}
+                        <View style={[styles.iconContainer, { backgroundColor: theme.name === "dark" ? theme.cardBackground : "rgba(59,130,246,0.1)" }]}>
+                            <Ionicons name={option.icon} size={26} color={theme.primary} />
                         </View>
-
                         <View style={styles.textContainer}>
-                            <Text style={[styles.settingTitle, { color: theme.text }]}>
-                                {option.title}
-                            </Text>
-                            <Text style={[styles.settingSubtitle, { color: theme.subtitle }]}>
-                                {option.subtitle}
-                            </Text>
+                            <Text style={[styles.settingTitle, { color: theme.text }]}>{option.title}</Text>
+                            <Text style={[styles.settingSubtitle, { color: theme.subtitle }]}>{option.subtitle}</Text>
                         </View>
-
-                        <Ionicons
-                            name="chevron-forward-outline"
-                            size={24}
-                            color={theme.subtitle}
-                        />
+                        <Ionicons name="chevron-forward-outline" size={24} color={theme.subtitle} />
                     </TouchableOpacity>
                 ))}
-
             </View>
 
+            {/* --- Notificaciones --- */}
             <View style={{ marginTop: 8 }}>
-                {/* Opción para Activar/Desactivar Notificaciones */}
-                <View
-                    style={[
-                        styles.settingCard,
-                        styles.notificationCard,
-                        { backgroundColor: theme.cardBackground },
-                    ]}
-                >
-                    <View
-                        style={[
-                            styles.iconContainer,
-                            { backgroundColor: theme.name === 'dark' ? theme.cardBackground : 'rgba(59,130,246,0.1)' },
-                        ]}
-                    >
-                        <Ionicons
-                            name="notifications-outline"
-                            size={26}
-                            color={theme.primary}
-                        />
+                <View style={[styles.settingCard, { backgroundColor: theme.cardBackground }]}>
+                    <View style={[styles.iconContainer, { backgroundColor: theme.name === "dark" ? theme.cardBackground : "rgba(59,130,246,0.1)" }]}>
+                        <Ionicons name="notifications-outline" size={26} color={theme.primary} />
                     </View>
-
                     <View style={styles.textContainer}>
-                        <Text style={[styles.settingTitle, { color: theme.text }]}>
-                            Notificaciones
-                        </Text>
+                        <Text style={[styles.settingTitle, { color: theme.text }]}>Notificaciones</Text>
                         {loadingNotificacion ? (
                             <ActivityIndicator color={theme.primary} />
                         ) : (
                             <Text style={[styles.settingSubtitle, { color: theme.subtitle }]}>
-                                {permisoNotificaciones
-                                    ? "Activadas: Recibirás recordatorios y alertas."
-                                    : "Desactivadas: No recibirás alertas directas."}
+                                {permisoNotificaciones ? "Activadas: Recibirás alerta." : "Desactivadas: No recibirás notificaciones."}
                             </Text>
                         )}
                     </View>
-
-                    {/* Switch de control */}
                     <Switch
                         trackColor={{ false: theme.subtitle, true: theme.primary }}
                         thumbColor={permisoNotificaciones ? "#fff" : "#f4f3f4"}
@@ -254,66 +215,52 @@ export default function ConfiguracionPaciente({ setUserToken }) {
                         disabled={loadingNotificacion}
                     />
                 </View>
+
+                <View style={styles.deleteSection}>
+                    <Text style={[styles.deleteHeader, { color: theme.text }]}>Zona de Riesgo</Text>
+
+                    <TouchableOpacity
+                        style={[styles.deleteButton, isDeleting && styles.disabledButton]}
+                        onPress={() => setShowDeleteModal(true)}
+                        disabled={isDeleting}
+                    >
+                        {isDeleting ? (
+                            <ActivityIndicator color="white" />
+                        ) : (
+                            <Text style={styles.deleteButtonText}>
+                                <Ionicons name="trash-outline" size={18} color="white" /> Eliminar Cuenta
+                            </Text>
+                        )}
+                    </TouchableOpacity>
+
+                    <Text style={styles.deleteWarningText}>
+                        Esta acción es permanente e irreversible.
+                    </Text>
+                </View>
             </View>
-
-            <View style={styles.deleteSection}>
-                <Text style={[styles.deleteHeader, { color: theme.text }]}>Zona de Riesgo</Text>
-
-                <TouchableOpacity
-                    style={[styles.deleteButton, isDeleting && styles.disabledButton]}
-                    onPress={() => setShowDeleteModal(true)}
-                    disabled={isDeleting}
-                >
-                    {isDeleting ? (
-                        <ActivityIndicator color="white" />
-                    ) : (
-                        <Text style={styles.deleteButtonText}>
-                            <Ionicons name="trash-outline" size={18} color="white" /> Eliminar Cuenta
-                        </Text>
-                    )}
-                </TouchableOpacity>
-
-                <Text style={styles.deleteWarningText}>
-                    Esta acción es permanente e irreversible.
-                </Text>
-            </View>
-
 
             {/* Modal de cierre de sesión */}
             <Modal
                 animationType="fade"
                 transparent={true}
                 visible={showLogoutModal}
-                onRequestClose={handleCancelLogout}
+                onRequestClose={() => setShowLogoutModal(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View
-                        style={[
-                            styles.modalContainer,
-                            { backgroundColor: theme.cardBackground },
-                        ]}
-                    >
-                        <Text style={[styles.modalTitle, { color: theme.text }]}>
-                            Cerrar Sesión
-                        </Text>
+                    <View style={[styles.modalContainer, { backgroundColor: theme.cardBackground }]}>
+                        <Text style={[styles.modalTitle, { color: theme.text }]}>Cerrar Sesión</Text>
                         <Text style={[styles.modalMessage, { color: theme.subtitle }]}>
                             ¿Estás seguro de que quieres cerrar tu sesión?
                         </Text>
-
                         <View style={styles.modalButtons}>
                             <TouchableOpacity
-                                // ESTILO CORREGIDO: Borde y texto usan theme.subtitle
                                 style={[styles.modalCancelButton, { borderColor: theme.subtitle }]}
-                                onPress={handleCancelLogout}
+                                onPress={() => setShowLogoutModal(false)}
                             >
                                 <Text style={[styles.modalCancelText, { color: theme.subtitle }]}>Cancelar</Text>
                             </TouchableOpacity>
-
                             <TouchableOpacity
-                                style={[
-                                    styles.modalConfirmButton,
-                                    { backgroundColor: theme.primary },
-                                ]}
+                                style={[styles.modalConfirmButton, { backgroundColor: theme.primary }]}
                                 onPress={handleConfirmLogout}
                             >
                                 <Text style={styles.modalConfirmText}>Aceptar</Text>
@@ -334,20 +281,13 @@ export default function ConfiguracionPaciente({ setUserToken }) {
                     <View style={[styles.modalContainer, { backgroundColor: theme.cardBackground }]}>
                         <Text style={[styles.modalTitle, { color: theme.text }]}>⚠️ Eliminar Cuenta</Text>
                         <Text style={[styles.modalMessage, { color: theme.subtitle }]}>
-                            ¿Estás **absolutamente seguro**? Esta acción es irreversible y eliminará todos tus datos.
+                            ¿Estás seguro? Esta acción es irreversible y eliminará todos tus datos.
                         </Text>
                         <View style={styles.modalButtons}>
-                            <TouchableOpacity
-                                // ESTILO CORREGIDO: Borde y texto usan theme.subtitle
-                                style={[styles.modalCancelButton, { borderColor: theme.subtitle }]}
-                                onPress={() => setShowDeleteModal(false)}
-                            >
+                            <TouchableOpacity style={[styles.modalCancelButton, { borderColor: theme.subtitle }]} onPress={() => setShowDeleteModal(false)}>
                                 <Text style={[styles.modalCancelText, { color: theme.subtitle }]}>No, Cancelar</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity
-                                style={styles.modalConfirmDeleteButton}
-                                onPress={handleDeleteAccount}
-                            >
+                            <TouchableOpacity style={styles.modalConfirmDeleteButton} onPress={handleDeleteAccount}>
                                 <Text style={styles.modalConfirmText}>Eliminar Definitivamente</Text>
                             </TouchableOpacity>
                         </View>
@@ -360,69 +300,6 @@ export default function ConfiguracionPaciente({ setUserToken }) {
 
 const styles = StyleSheet.create({
 
-    // --- ESTILOS PARA NOTIFICACIONES ---
-    sectionHeader: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        paddingHorizontal: 5,
-    },
-    notificationCard: {
-        justifyContent: 'space-between',
-        paddingVertical: 15,
-    },
-    testButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 12,
-        borderRadius: 10,
-        marginTop: 10,
-        marginBottom: 10,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
-        shadowRadius: 1.41,
-        elevation: 2,
-    },
-    testButtonText: {
-        color: 'white',
-        fontSize: 15,
-        fontWeight: '600',
-    },
-
-    container: {
-        flex: 1,
-        paddingHorizontal: 20,
-        paddingTop: 30,
-    },
-    settingCard: {
-        flexDirection: "row",
-        alignItems: "center",
-        borderRadius: 16,
-        padding: 18,
-        marginBottom: 15,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 3,
-    },
-    iconContainer: {
-        marginRight: 18,
-        padding: 10,
-        borderRadius: 12,
-    },
-    textContainer: {
-        flex: 1,
-    },
-    settingTitle: {
-        fontSize: 17,
-        fontWeight: "600",
-    },
-    settingSubtitle: {
-        fontSize: 13,
-    },
     // --- ESTILOS DE ELIMINACIÓN DE CUENTA ---
     deleteSection: {
         marginTop: 30,
@@ -457,6 +334,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 10,
     },
+
     // --- ESTILOS DE MODAL ---
     modalOverlay: {
         flex: 1,
@@ -515,8 +393,22 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: '#DC2626',
     },
-    modalConfirmText: {
-        color: "white",
-        fontWeight: "bold",
+    modalConfirmText: { color: "white", fontWeight: "bold" },
+    container: { flex: 1, paddingHorizontal: 20, paddingTop: 30 },
+    settingCard: {
+        flexDirection: "row",
+        alignItems: "center",
+        borderRadius: 16,
+        padding: 18,
+        marginBottom: 15,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
     },
+    iconContainer: { marginRight: 18, padding: 10, borderRadius: 12 },
+    textContainer: { flex: 1 },
+    settingTitle: { fontSize: 17, fontWeight: "600" },
+    settingSubtitle: { fontSize: 13 },
 });

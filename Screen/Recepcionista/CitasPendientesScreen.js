@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   Linking,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "../../components/ThemeContext";
@@ -18,18 +19,24 @@ export default function CitasPendientesScreen() {
   const [citas, setCitas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const cargarCitas = async () => {
+    const res = await obtenerCitasPendientes();
+    if (res.success) setCitas(res.data);
+    else Alert.alert("Error", res.message);
+    setLoading(false);
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     cargarCitas();
   }, []);
 
-  const cargarCitas = async () => {
-    setLoading(true);
-    const res = await obtenerCitasPendientes();
-    if (res.success) setCitas(res.data);
-    else Alert.alert("Error", res.message);
-    setLoading(false);
-  };
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    cargarCitas();
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -78,7 +85,12 @@ export default function CitasPendientesScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.background }]}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
+      }
+    >
       <Text style={[styles.sectionTitle, { color: theme.text }]}>
         <Ionicons name="notifications" size={16} color={theme.text} /> Citas Pendientes
       </Text>
@@ -103,7 +115,7 @@ export default function CitasPendientesScreen() {
           >
             <View style={styles.header}>
               <Text style={[styles.name, { color: theme.text }]}>
-                {cita.pacientes?.nombre} {cita.pacientes?.apellido}
+                {cita.paciente?.nombre} {cita.paciente?.apellido}
               </Text>
               <View
                 style={[
@@ -114,6 +126,17 @@ export default function CitasPendientesScreen() {
                 <Text style={styles.badgeText}>{cita.estado}</Text>
               </View>
             </View>
+
+            <Text style={[styles.info, { color: theme.subtitle }]}>
+              Documento: {cita.paciente?.documento}
+            </Text>
+            <Text style={[styles.info, { color: theme.subtitle }]}>
+              Correo: {cita.paciente?.correo}
+            </Text>
+            <Text style={[styles.info, { color: theme.subtitle }]}>
+              Celular: {cita.paciente?.celular}
+            </Text>
+
 
             <Text style={[styles.info, { color: theme.subtitle }]}>
               Médico: {cita.doctor?.nombre}

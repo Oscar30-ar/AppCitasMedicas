@@ -19,7 +19,7 @@ function PerfilStackWrapper({ setUserToken }) {
             <Stack.Screen
                 name="PerfilMain"
                 children={(props) => <PerfilRecepcionista {...props} setUserToken={setUserToken} />}
-                options={{ headerShown: false }}
+                options={{ title: "Mi Perfil" }}
             />
             <Stack.Screen
                 name="EditarRecepcionista"
@@ -36,7 +36,7 @@ function ConfiguracionStackWrapper({ setUserToken }) {
             <Stack.Screen
                 name="ConfiguracionMain"
                 children={(props) => <ConfiguracionRecepcionista {...props} setUserToken={setUserToken} />}
-                options={{ headerShown: false }}
+                options={{ title: "Configuración" }}
             />
             <Stack.Screen
                 name="CambiarContrasenaRecepcionista"
