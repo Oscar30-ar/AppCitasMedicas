@@ -165,17 +165,21 @@ export const listarHorarios = async () => {
 //  Crear horario
 export const crearHorario = async (data) => {
   try {
-    const token = await AsyncStorage.getItem("userToken");
-    const res = await apiConexion.post("/CrearHorarios", data, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return { success: true, message: res.data.message };
+    const res = await apiConexion.post("/CrearHorarios", data);
+    return res.data;
   } catch (error) {
-    console.error("Error creando horario:", error.response?.data || error.message);
-    return { success: false, message: error.response?.data?.message || "Error al crear el horario." };
+    if (error.response) {
+      // Devolver mensaje y código
+      return {
+        success: false,
+        status: error.response.status,
+        message: error.response.data.message,
+        code: error.response.data.code,
+      };
+    }
+    return { success: false, message: "Error al conectar con el servidor." };
   }
 };
-
 
 // Editar horario
 export const editarHorario = async (id, data) => {

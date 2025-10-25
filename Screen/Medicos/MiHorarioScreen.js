@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { listarHorarios, eliminarHorario } from "../../Src/Service/MedicoService";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 const MiHorarioScreen = () => {
@@ -45,9 +45,11 @@ const MiHorarioScreen = () => {
     }
   };
 
-  useEffect(() => {
-    cargarHorarios();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      cargarHorarios();
+    }, [])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
