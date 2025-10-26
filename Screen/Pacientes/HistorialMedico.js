@@ -9,7 +9,7 @@ const EventCard = ({ item, theme }) => {
     return (
         <View style={[styles.eventCard, { backgroundColor: theme.cardBackground }]}>
             <View style={styles.eventHeader}>
-                <Ionicons 
+                <Ionicons
                     name={item.eventType === "Consulta" ? "medkit-outline" : "flask-outline"}
                     size={24}
                     color={theme.primary}
@@ -26,7 +26,7 @@ const EventCard = ({ item, theme }) => {
                 {item.description}
             </Text>
             <Text style={[styles.eventDoctor, { color: theme.subtitle }]}>
-                Con el {item.doctor} en consultorio {item.consultorio}
+                Con el {item.doctor}
             </Text>
         </View>
     );
@@ -44,26 +44,23 @@ export default function HistorialMedicoScreen() {
         try {
             const result = await HistorialMedico();
 
-            if (result.success && Array.isArray(result.data)) {
-                
-                const formattedHistory = result.data.map(cita => ({
+            if (result.success && Array.isArray(result.data.data)) {
+                const formattedHistory = result.data.data.map(cita => ({
                     id: cita.id,
-                    date: cita.fecha, 
-                    time: cita.hora, 
-                    description: cita.descripcion || 'Consulta sin detalles',
-                    consultorio: cita.consultorio, 
-                    
-                    eventType: 'Consulta', 
-                    
-                    doctor: `Dr. ${cita.doctor?.nombre || ''} ${cita.doctor?.apellido || ''}`, 
-                    
-                    specialty: cita.doctor?.especialidades?.[0]?.nombre || 'Medicina General', 
+                    date: cita.fecha,
+                    time: cita.hora,
+                    description: cita.descripcion || "Consulta sin detalles",
+                    consultorio: cita.consultorio ?? "No asignado",
+                    eventType: "Consulta",
+                    doctor: `Dr. ${cita.doctor?.nombre || ''} ${cita.doctor?.apellido || ''}`,
+                    specialty: cita.doctor?.especialidades?.[0]?.nombre || "Medicina General",
                 }));
-                
+
                 setHistory(formattedHistory);
             } else {
-                Alert.alert("Error de Historial", result.message || "La respuesta del servidor no es una lista válida de citas."); 
+                Alert.alert("Error de Historial", "No se encontraron citas en el historial");
             }
+
         } catch (error) {
             console.error("Error al cargar el historial:", error);
             Alert.alert("Error", "Ocurrió un error inesperado al cargar el historial.");
@@ -76,7 +73,7 @@ export default function HistorialMedicoScreen() {
     useEffect(() => {
         loadHistory();
     }, []);
-    
+
     const onRefresh = () => {
         setRefreshing(true);
         loadHistory();
@@ -91,7 +88,7 @@ export default function HistorialMedicoScreen() {
             </View>
         );
     }
-    
+
     // Si no hay historial
     if (!history || history.length === 0) {
         return (
@@ -114,7 +111,7 @@ export default function HistorialMedicoScreen() {
             </View>
             <FlatList
                 data={history}
-                keyExtractor={(item, index) => item.id ? String(item.id) : index.toString()} 
+                keyExtractor={(item, index) => item.id ? String(item.id) : index.toString()}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.primary]} tintColor={theme.primary} />
                 }

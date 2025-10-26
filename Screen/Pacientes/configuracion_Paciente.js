@@ -42,10 +42,26 @@ export default function ConfiguracionPaciente({ setUserToken }) {
 
     // Verificar permisos
     const checkPermisos = async () => {
-        const { status } = await Notifications.getPermissionsAsync();
+        setLoadingNotificacion(true);
+
+        const userData = await AsyncStorage.getItem("userData");
+        const user = JSON.parse(userData);
+
+        const tokenOwner = await AsyncStorage.getItem("notificaciones_user_id");
+        const token = await AsyncStorage.getItem("expo_token");
         const preferencia = await AsyncStorage.getItem("notificaciones_activas");
-        setPermisoNotificaciones(status === "granted" && preferencia === "true");
+
+        if (
+            token &&
+            preferencia === "true" &&
+            String(user.id) === tokenOwner
+        ) {
+            setPermisoNotificaciones(true);
+        } else {
+            setPermisoNotificaciones(false);
+        }
         setLoadingNotificacion(false);
+
     };
 
     useEffect(() => {
@@ -101,8 +117,13 @@ export default function ConfiguracionPaciente({ setUserToken }) {
                     return;
                 }
 
+                const userData = await AsyncStorage.getItem("userData");
+                const user = JSON.parse(userData);
+
                 await AsyncStorage.setItem("notificaciones_activas", "true");
                 await AsyncStorage.setItem("expo_token", token);
+                await AsyncStorage.setItem("notificaciones_user_id", String(user.id));
+
                 setPermisoNotificaciones(true);
 
                 console.log("📤 Enviando token al backend...");

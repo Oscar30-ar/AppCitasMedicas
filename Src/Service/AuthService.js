@@ -46,7 +46,12 @@ export const loginUser = async (correo, clave, role) => {
 
 export const logout = async () => {
   try {
-    await AsyncStorage.multiRemove(["userToken", "rolUser", "userData"]);
+    await AsyncStorage.multiRemove([
+      "userToken",
+      "rolUser",
+      "userData",
+    ]);
+
     console.log("Sesión cerrada correctamente.");
     return { success: true, message: "Sesión cerrada correctamente" };
   } catch (error) {
@@ -54,6 +59,8 @@ export const logout = async () => {
     return { success: false, message: "Ocurrió un error al intentar cerrar la sesión." };
   }
 };
+
+
 
 
 export const registrarPaciente = async (userData) => {

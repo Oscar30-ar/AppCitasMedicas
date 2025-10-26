@@ -56,8 +56,9 @@ export default function DashboardScreen({ setUserToken }) {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
-            console.log("Perfil cargado:", response.data);
-            setUsuario(response.data);
+            console.log("🔍 Datos recibidos del backend:", response.data);
+            setUsuario(response.data.data);
+
 
             await cargarCitas();
         } catch (error) {
@@ -226,7 +227,7 @@ export default function DashboardScreen({ setUserToken }) {
                                 {cita.descripcion || "Sin descripción"}
                             </Text>
                             <View style={styles.appointmentDetails}>
-                                
+
                                 <Ionicons name="calendar-outline" size={16} color={theme.subtitle} />
                                 <Text style={[styles.infoText, { color: theme.subtitle }]}>{cita.fecha}</Text>
                                 <Ionicons name="time-outline" size={16} color={theme.subtitle} style={{ marginLeft: 15 }} />
@@ -239,14 +240,14 @@ export default function DashboardScreen({ setUserToken }) {
                                 onPress={() => navigation.navigate('ReprogramarCita', { cita: cita })}
                             >
                                 <Ionicons name="calendar" size={18} color="#fff" />
-                                <Text style={[styles.buttonText,{ color: "#fcfcfcff" , marginLeft:5}]}>Reprogramar</Text>
+                                <Text style={[styles.buttonText, { color: "#fcfcfcff", marginLeft: 5 }]}>Reprogramar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={styles.cancelButton}
                                 onPress={() => handleCancelarCita(cita.id)}
                             >
                                 <Ionicons name="close-circle" size={18} color="#fff" />
-                                <Text style={[styles.buttonText, { color: "#fcfcfcff" , marginLeft:5}]}>Cancelar</Text>
+                                <Text style={[styles.buttonText, { color: "#fcfcfcff", marginLeft: 5 }]}>Cancelar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

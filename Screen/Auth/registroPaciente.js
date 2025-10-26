@@ -166,10 +166,6 @@ export default function RegisterPatientScreen({ navigation }) {
       return false;
     }
 
-    if (celular.length < 10 || documento.length < 10) {
-      Alert.alert("Error", "El celular y el documento deben ser de minimo 10 caracteres.");
-      return false;
-    }
     if (clave !== confirmarClave) {
       Alert.alert("Error de registro", "Las contraseñas no coinciden.");
       return false;
