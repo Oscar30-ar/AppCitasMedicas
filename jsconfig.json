@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "checkJs": false,
+    "allowJs": true,
+    "skipLibCheck": true
+  },
+  "exclude": ["node_modules", "**/node_modules/*"]
+}

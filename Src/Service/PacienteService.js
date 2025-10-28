@@ -1,4 +1,5 @@
 import * as Notifications from "expo-notifications";
+import messaging from "@react-native-firebase/messaging";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiConexion from "./Conexion";
 
@@ -235,33 +236,55 @@ export const cancelarCitaPaciente = async (citaId) => {
   }
 };
 
-// Guardar token Expo en backend
-export const guardarTokenNotificacion = async () => {
+// 🔥 Obtener y guardar token FCM en backend
+export const getFCMToken = async () => {
   try {
-    // 1️⃣ Solicitar permisos al usuario
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== "granted") {
-      console.log("Permiso de notificaciones no concedido");
-      return { success: false, message: "Permiso no concedido" };
+    // Pedir permiso al usuario
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (!enabled) {
+      console.log("🚫 Permisos de notificación no concedidos");
+      return { success: false, message: "Permiso denegado" };
     }
 
-    // 2️⃣ Obtener el token único del dispositivo
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
-    console.log("Expo Token obtenido:", token);
+    // Obtener token FCM
+    const token = await messaging().getToken();
+    console.log("🔥 Token FCM generado:", token);
 
-    // 3️⃣ Enviar el token al backend
-    const response = await apiConexion.post("/paciente/guardar-token", { token });
+    // Guardar localmente
+    await AsyncStorage.setItem("expo_token", token);
+
+    // Obtener token JWT del usuario
+    const jwtToken = await AsyncStorage.getItem("userToken");
+    if (!jwtToken) {
+      console.log("⚠️ Usuario no autenticado");
+      return { success: false, message: "Usuario no autenticado" };
+    }
+
+    // Enviar token FCM al backend (campo expo_token)
+    const response = await apiConexion.post("/paciente/guardar-token",
+      { token }, // Laravel lo recibe como $request->token
+      {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      }
+    );
 
     if (response.data.success) {
-      await AsyncStorage.setItem("expo_token", token);
-      console.log("✅ Token guardado correctamente en el servidor.");
-      return { success: true, message: "Token guardado correctamente" };
+      console.log("✅ Token FCM guardado correctamente en el backend.");
+      return { success: true, token };
     } else {
-      console.error("❌ Error al guardar token:", response.data.message);
-      return { success: false, message: response.data.message };
+      console.log("⚠️ Error al guardar token en backend:", response.data);
+      return { success: false, message: "Error al guardar token en backend" };
     }
   } catch (error) {
-    console.error("Error al guardar token de notificación:", error);
-    return { success: false, message: "Error interno" };
+    console.error("❌ Error al obtener o guardar token FCM:", error);
+    return { success: false, message: "Error interno al obtener token FCM" };
   }
 };
+
+

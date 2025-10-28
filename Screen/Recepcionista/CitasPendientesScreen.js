@@ -51,10 +51,10 @@ export default function CitasPendientesScreen() {
     }
   };
 
-  const handleActualizarEstado = (id, nuevoEstado, nombrePaciente) => {
+  const handleActualizarEstado = (id, nuevoEstado, nombre) => {
     Alert.alert(
       `${nuevoEstado === "confirmada" ? "Confirmar" : "Cancelar"} cita`,
-      `¿Deseas ${nuevoEstado === "confirmada" ? "confirmar" : "cancelar"} la cita de ${nombrePaciente}?`,
+      `¿Deseas ${nuevoEstado === "confirmada" ? "confirmar" : "cancelar"} la cita de ${nombre}?`,
       [
         { text: "No", style: "cancel" },
         {
@@ -77,9 +77,9 @@ export default function CitasPendientesScreen() {
     );
   };
 
-  const handleCall = (telefono, nombre) => {
-    if (!telefono) return Alert.alert("Sin número", `No hay teléfono disponible para ${nombre}`);
-    Linking.openURL(`tel:${telefono}`).catch(() =>
+  const handleCall = (celular, nombre) => {
+    if (!celular) return Alert.alert("Sin número", `No hay teléfono disponible para ${nombre}`);
+    Linking.openURL(`tel:${celular}`).catch(() =>
       Alert.alert("Error", "No se pudo abrir la aplicación de llamadas.")
     );
   };
@@ -149,7 +149,7 @@ export default function CitasPendientesScreen() {
               <TouchableOpacity
                 style={[styles.btnOutline, { borderColor: theme.primary }]}
                 onPress={() =>
-                  handleCall(cita.pacientes?.celular, cita.pacientes?.nombre)
+                  handleCall(cita.paciente?.celular, cita.paciente?.nombre)
                 }
               >
                 <Ionicons name="call-outline" size={16} color={theme.primary} />
@@ -164,7 +164,7 @@ export default function CitasPendientesScreen() {
                       handleActualizarEstado(
                         cita.id,
                         "confirmada",
-                        cita.pacientes?.nombre
+                        cita.paciente?.nombre
                       )
                     }
                     disabled={updatingId === cita.id}
@@ -178,7 +178,7 @@ export default function CitasPendientesScreen() {
                       handleActualizarEstado(
                         cita.id,
                         "cancelada",
-                        cita.pacientes?.nombre
+                        cita.paciente?.nombre
                       )
                     }
                     disabled={updatingId === cita.id}

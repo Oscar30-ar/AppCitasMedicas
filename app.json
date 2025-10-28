@@ -16,9 +16,11 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "useNextNotificationsApi": true,
-      "intentFilters": [],
-      "permissions": [],
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ],
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -30,11 +32,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "owner": "oscarbohorquez",
     "extra": {
       "eas": {
-        "projectId": "931b0874-5171-4ff1-947c-2e7f5327bda2"
+        "projectId": "f9bce6df-c1f9-4f95-85dd-fa4c0391b0f2"
       }
-    },
-    "owner": "oscarbohorquez"
+    }
   }
 }

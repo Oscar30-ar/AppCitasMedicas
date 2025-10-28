@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "312723274263",
+    "project_id": "appcitasmedicas-74f7d",
+    "storage_bucket": "appcitasmedicas-74f7d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:312723274263:android:2d9b580ddb33bd0d8f3a52",
+        "android_client_info": {
+          "package_name": "com.anonymous.AppCitasMedicas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIjAfSBiLeeTUC5n65z2MXln3Yb__klR0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
